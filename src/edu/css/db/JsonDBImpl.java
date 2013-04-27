@@ -494,6 +494,32 @@ public class JsonDBImpl implements JsonDB {
     }
 }
 
+class JsonDBCreator
+{
+    public void createDb(String path, Class clazz)
+    {
+        String dbName = Introspector.decapitalize(clazz.getSimpleName());
+
+        File metaFile = new File(path + File.separator + dbName + ".meta.json");
+        if(!metaFile.exists())
+        {
+            EntityMeta entityMeta = createEntityMeta(clazz);
+            writeToFile(path, entityMeta);
+        }
+    }
+
+    private EntityMeta createEntityMeta(Class clazz)
+    {
+        //TODO
+        return null;
+    }
+
+    private void writeToFile(String path, EntityMeta entityMeta)
+    {
+        //TODO
+    }
+}
+
 class EntityMeta {
     private String name;
     private Map<String, ColumnMeta> columns;

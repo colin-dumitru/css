@@ -1,0 +1,48 @@
+{
+    "entities": [
+        {
+            "name": "student",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "int",
+                    "id": "true"
+                },
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "passed",
+                    "type": "boolean"
+                },
+                {
+                    "name": "average",
+                    "type": "decimal"
+                }
+            ]
+        },
+        {
+            "name": "subject",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "int",
+                    "id": "true"
+                },
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "passed",
+                    "type": "boolean"
+                },
+                {
+                    "name": "average",
+                    "type": "decimal"
+                }
+            ]
+        }
+    ]
+}
