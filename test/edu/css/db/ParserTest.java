@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 public class ParserTest {
     @Test
     public void testGetAllMeta() throws Exception {
-        JsonDB db = JsonDBImpl.fromFile("db\\student");
+        JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
         List<Student> students = db.getAll(Student.class);
@@ -25,7 +25,7 @@ public class ParserTest {
 
     @Test
     public void testFind() throws Exception {
-        JsonDB db = JsonDBImpl.fromFile("db\\student");
+        JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
         Student student = db.find(2, Student.class);
@@ -36,7 +36,7 @@ public class ParserTest {
 
     @Test
     public void testSave() throws Exception {
-        JsonDB db = JsonDBImpl.fromFile("db\\student");
+        JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
         Student student = new Student("Virgil", false, 10d);
@@ -55,7 +55,7 @@ public class ParserTest {
 
     @Test
     public void testUpdate() throws Exception {
-        JsonDB db = JsonDBImpl.fromFile("db\\student");
+        JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
         Student student = db.find(0, Student.class);
@@ -71,7 +71,7 @@ public class ParserTest {
 
     @Test
     public void testDelete() throws Exception {
-        JsonDB db = JsonDBImpl.fromFile("db\\student");
+        JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
         Student student = new Student("Virgil", false, 10d);

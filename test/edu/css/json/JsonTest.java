@@ -14,7 +14,7 @@ public class JsonTest {
     @Test
     public void testLoadStudent() throws Exception {
         JsonParser parser = new JsonParser();
-        Scanner scanner = new Scanner(new File("db/student/student.json"));
+        Scanner scanner = new Scanner(new File("db/test/student/student.json"));
         scanner.useDelimiter("\\Z");
         String input = scanner.next();
 
@@ -24,7 +24,7 @@ public class JsonTest {
     @Test
     public void testLoadStudentMeta() throws Exception {
         JsonParser parser = new JsonParser();
-        Scanner scanner = new Scanner(new File("db/student/student.meta.json"));
+        Scanner scanner = new Scanner(new File("db/test/student/student.meta.json"));
         scanner.useDelimiter("\\Z");
         String input = scanner.next();
 
