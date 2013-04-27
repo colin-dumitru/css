@@ -1,8 +1,7 @@
 package edu.css.db;
 
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+
+import edu.css.json.JsonParser;
 
 import java.beans.Introspector;
 import java.io.File;
@@ -15,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static edu.css.json.JsonParser.*;
 
 /**
  * Catalin Dumitru
@@ -26,7 +26,7 @@ public class JsonDBImpl implements JsonDB {
     private final Map<String, EntityMeta> entities = new HashMap<>();
 
     private boolean closed = true;
-    private JSONObject dbObject;
+    private ObjectValue dbObject;
 
     private JsonDBImpl(File metaFile, File dataFile) {
         this.metaFile = metaFile;
@@ -56,56 +56,55 @@ public class JsonDBImpl implements JsonDB {
         try {
             Scanner scanner = new Scanner(metaFile);
             scanner.useDelimiter("\\Z");
-            JSONObject jsonObject = new JSONObject(scanner.next());
+            ObjectValue jsonObject = new JsonParser().parse(scanner.next());
             loadMetadata(jsonObject);
-        } catch (FileNotFoundException | JSONException e) {
+        } catch (FileNotFoundException e) {
             throw new DBParseException("Error loading metadata", e);
         }
         return this;
     }
 
-    private void loadMetadata(JSONObject jsonObject) throws JSONException {
-        JSONArray entitiesArray = jsonObject.getJSONArray("entities");
+    private void loadMetadata(ObjectValue jsonObject) {
+        ArrayValue entitiesArray = jsonObject.property("entities");
 
-        for (int i = 0; i < entitiesArray.length(); i++) {
-            JSONObject entityObject = entitiesArray.getJSONObject(i);
-            EntityMeta entityMeta = createEntityMeta(entityObject);
+        for (JsonValue jsonValue : entitiesArray.properties()) {
+            EntityMeta entityMeta = createEntityMeta((ObjectValue) jsonValue);
             entities.put(entityMeta.getName(), entityMeta);
         }
     }
 
-    private EntityMeta createEntityMeta(JSONObject entityObject) throws JSONException {
-        String name = entityObject.getString("name");
-        JSONArray columns = entityObject.getJSONArray("columns");
+    private EntityMeta createEntityMeta(ObjectValue entityObject) {
+        String name = entityObject.<StringValue>property("name").value();
+        ArrayValue columns = entityObject.property("columns");
         Map<String, ColumnMeta> columnsMeta = createColumnsMeta(columns);
         List<String> orderedColumns = createOrderedColumns(columns);
 
         return new EntityMeta(name, columnsMeta, orderedColumns);
     }
 
-    private List<String> createOrderedColumns(JSONArray columns) throws JSONException {
+    private List<String> createOrderedColumns(ArrayValue columns) {
         List<String> columnsMeta = newArrayList();
 
-        for (int i = 0; i < columns.length(); i++) {
-            columnsMeta.add(columns.getJSONObject(i).getString("name"));
+        for (JsonValue jsonValue : columns.properties()) {
+            columnsMeta.add(((ObjectValue) jsonValue).<StringValue>property("name").value());
         }
         return columnsMeta;
     }
 
-    private Map<String, ColumnMeta> createColumnsMeta(JSONArray columns) throws JSONException {
+    private Map<String, ColumnMeta> createColumnsMeta(ArrayValue columns) {
         Map<String, ColumnMeta> columnsMeta = new HashMap<>();
 
-        for (int i = 0; i < columns.length(); i++) {
-            ColumnMeta columnMeta = createColumnMeta(columns.getJSONObject(i));
+        for (JsonValue jsonValue : columns.properties()) {
+            ColumnMeta columnMeta = createColumnMeta((ObjectValue) jsonValue);
             columnsMeta.put(columnMeta.getName(), columnMeta);
         }
         return columnsMeta;
     }
 
-    private ColumnMeta createColumnMeta(JSONObject jsonObject) throws JSONException {
-        String name = jsonObject.getString("name");
-        String type = jsonObject.getString("type");
-        boolean isKey = jsonObject.has("id") && jsonObject.getBoolean("id");
+    private ColumnMeta createColumnMeta(ObjectValue jsonObject) {
+        String name = jsonObject.<StringValue>property("name").value();
+        String type = jsonObject.<StringValue>property("type").value();
+        boolean isKey = jsonObject.has("id") && jsonObject.<BooleanValue>property("id").value();
 
         return new ColumnMeta(name, type, isKey, ColumnParserBuilder.fromType(type));
     }
@@ -132,8 +131,8 @@ public class JsonDBImpl implements JsonDB {
         try {
             Scanner scanner = new Scanner(dataFile);
             scanner.useDelimiter("\\Z");
-            this.dbObject = new JSONObject(scanner.next());
-        } catch (FileNotFoundException | JSONException e) {
+            this.dbObject = new JsonParser().parse(scanner.next());
+        } catch (FileNotFoundException e) {
             throw new DBParseException("Error loading metadata", e);
         }
     }
@@ -165,27 +164,23 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> List<T> getAllChecked(Class<T> clazz) {
-        try {
-            return loadAll(dbObject, clazz);
-        } catch (JSONException e) {
-            throw new DBParseException("Error loading metadata", e);
-        }
+        return loadAll(dbObject, clazz);
     }
 
-    private <T> List<T> loadAll(JSONObject jsonObject, Class<T> clazz) throws JSONException {
+    private <T> List<T> loadAll(ObjectValue jsonObject, Class<T> clazz) {
         if (!jsonObject.has("data")) {
             return Collections.emptyList();
         }
-        JSONObject dataObject = jsonObject.getJSONObject("data");
+        ObjectValue dataObject = jsonObject.property("data");
         return loadAllFromData(dataObject, clazz);
     }
 
-    private <T> List<T> loadAllFromData(JSONObject dataObject, Class<T> clazz) throws JSONException {
+    private <T> List<T> loadAllFromData(ObjectValue dataObject, Class<T> clazz) {
         String entityName = Introspector.decapitalize(clazz.getSimpleName());
         if (!dataObject.has(entityName)) {
             return Collections.emptyList();
         }
-        JSONArray entityArray = dataObject.getJSONArray(entityName);
+        ArrayValue entityArray = dataObject.property(entityName);
         Constructor<T> constructor = getConstructor(clazz);
         return loadAllFromArray(entityArray, entities.get(entityName), constructor);
     }
@@ -198,20 +193,20 @@ public class JsonDBImpl implements JsonDB {
         }
     }
 
-    private <T> List<T> loadAllFromArray(JSONArray entityArray, EntityMeta entityMeta, Constructor<T> constructor) throws JSONException {
+    private <T> List<T> loadAllFromArray(ArrayValue entityArray, EntityMeta entityMeta, Constructor<T> constructor) {
         List<T> rows = newArrayList();
 
-        for (int i = 0; i < entityArray.length(); i++) {
-            T row = loadRow(entityArray.getJSONArray(i), entityMeta, constructor);
+        for (JsonValue jsonValue : entityArray.properties()) {
+            T row = loadRow((ArrayValue) jsonValue, entityMeta, constructor);
             rows.add(row);
         }
         return rows;
     }
 
-    private <T> T loadRow(JSONArray array, EntityMeta entityMeta, Constructor<T> constructor) throws JSONException {
+    private <T> T loadRow(ArrayValue array, EntityMeta entityMeta, Constructor<T> constructor) {
         T row = createNewInstance(constructor);
 
-        for (int i = 0; i < array.length(); i++) {
+        for (int i = 0; i < array.properties().size(); i++) {
             String columnName = entityMeta.getOrderedColumns().get(i);
             Object columnData = getColumnData(columnName, array.get(i), entityMeta);
             setColumnData(row, columnData, columnName);
@@ -242,7 +237,7 @@ public class JsonDBImpl implements JsonDB {
         }
     }
 
-    private Object getColumnData(String columnName, Object obj, EntityMeta entityMeta) {
+    private Object getColumnData(String columnName, JsonValue obj, EntityMeta entityMeta) {
         return entityMeta.getColumns().get(columnName).getParser().fromJson(obj);
     }
 
@@ -361,50 +356,42 @@ public class JsonDBImpl implements JsonDB {
         checkIfMetadata(entity.getClass());
 
         updateKeyField(entity);
-        JSONArray dataArray = serialize(entity);
+        ArrayValue dataArray = serialize(entity);
         save(dataArray, entity);
     }
 
-    private <T> void save(JSONArray dataArray, T entity) {
-        try {
-            JSONObject dataObject = dbObject.getJSONObject("data");
-            JSONArray entityArray = dataObject.getJSONArray(Introspector.decapitalize(entity.getClass().getSimpleName()));
-            saveOrUpdateEntity(dataArray, entityArray, entity);
-        } catch (JSONException e) {
-            throw new DBParseException("Error updating entity", e);
-        }
+    private <T> void save(ArrayValue dataArray, T entity) {
+        ObjectValue dataObject = dbObject.property("data");
+        ArrayValue entityArray = dataObject.property(Introspector.decapitalize(entity.getClass().getSimpleName()));
+        saveOrUpdateEntity(dataArray, entityArray, entity);
     }
 
-    private <T> void saveOrUpdateEntity(JSONArray dataArray, JSONArray entityArray, T entity) {
+    private <T> void saveOrUpdateEntity(ArrayValue dataArray, ArrayValue entityArray, T entity) {
         tryToRemoveEntity(entityArray, entity);
-        entityArray.put(dataArray);
+        entityArray.push(dataArray);
     }
 
-    private <T> void tryToRemoveEntity(JSONArray dataArray, T entity) {
-        try {
-            removeEntity(dataArray, entity);
-        } catch (JSONException e) {
-            throw new DBParseException("Error removing entity", e);
-        }
+    private <T> void tryToRemoveEntity(ArrayValue dataArray, T entity) {
+        removeEntity(dataArray, entity);
     }
 
-    private <T> void removeEntity(JSONArray dataArray, T entity) throws JSONException {
-        JSONArray entityArray = findArrayForEntity(dataArray, entity);
+    private <T> void removeEntity(ArrayValue dataArray, T entity) {
+        ArrayValue entityArray = findArrayForEntity(dataArray, entity);
         if (entityArray != null) {
-            dataArray.remove(entityArray);
+            dataArray.properties().remove(entityArray);
         }
     }
 
-    private <T> JSONArray findArrayForEntity(JSONArray dataArray, T entity) throws JSONException {
-        for (int i = 0; i < dataArray.length(); i++) {
-            if (arrayForEntity(dataArray.getJSONArray(i), entity)) {
-                return dataArray.getJSONArray(i);
+    private <T> ArrayValue findArrayForEntity(ArrayValue dataArray, T entity) {
+        for (JsonValue jsonValue : dataArray.properties()) {
+            if (arrayForEntity((ArrayValue) jsonValue, entity)) {
+                return (ArrayValue) jsonValue;
             }
         }
         return null;
     }
 
-    private <T> boolean arrayForEntity(JSONArray jsonArray, T entity) throws JSONException {
+    private <T> boolean arrayForEntity(ArrayValue jsonArray, T entity) {
         String entityName = Introspector.decapitalize(entity.getClass().getSimpleName());
         Object row = loadRow(jsonArray, entities.get(entityName), getConstructor(entity.getClass()));
         Object rowIdValue = getFieldValue(row, getField(entities.get(entityName).getKeyColumn().getName(), entity.getClass()));
@@ -427,32 +414,28 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private Integer getNextSequence(String entityName) {
-        try {
-            JSONObject seqObject = dbObject.getJSONObject("seq");
-            return getNextSequence(seqObject, entityName);
-        } catch (JSONException e) {
-            throw new DBParseException("Error creating sequence", e);
-        }
+        ObjectValue seqObject = dbObject.property("seq");
+        return getNextSequence(seqObject, entityName);
     }
 
-    private int getNextSequence(JSONObject seqObject, String entityName) throws JSONException {
-        int nextSeq = seqObject.getInt(entityName);
+    private int getNextSequence(ObjectValue seqObject, String entityName) {
+        int nextSeq = seqObject.<IntValue>property(entityName).value();
         nextSeq++;
-        seqObject.put(entityName, nextSeq);
+        seqObject.set(entityName, new IntValue(nextSeq));
         return nextSeq;
     }
 
-    private <T> JSONArray serialize(T entity) {
-        JSONArray dataArray = new JSONArray();
+    private <T> ArrayValue serialize(T entity) {
+        ArrayValue dataArray = new ArrayValue();
         EntityMeta meta = entities.get(Introspector.decapitalize(entity.getClass().getSimpleName()));
-        for (Object obj : serialize(entity, meta)) {
-            dataArray.put(obj);
+        for (JsonValue obj : serialize(entity, meta)) {
+            dataArray.push(obj);
         }
         return dataArray;
     }
 
-    private <T> List<Object> serialize(T entity, EntityMeta meta) {
-        List<Object> objectValues = newArrayList();
+    private <T> List<JsonValue> serialize(T entity, EntityMeta meta) {
+        List<JsonValue> objectValues = newArrayList();
 
         for (String column : meta.getOrderedColumns()) {
             objectValues.add(getEntityValue(entity, column, meta.getColumns().get(column)));
@@ -460,7 +443,7 @@ public class JsonDBImpl implements JsonDB {
         return objectValues;
     }
 
-    private <T> Object getEntityValue(T entity, String column, ColumnMeta columnMeta) {
+    private <T> JsonValue getEntityValue(T entity, String column, ColumnMeta columnMeta) {
         Field columnField = getField(column, entity.getClass());
         columnField.setAccessible(true);
         return columnMeta.getParser().toJson(getFieldValue(entity, columnField));
@@ -475,13 +458,9 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> void tryToDelete(T entity) {
-        try {
-            JSONObject dataObject = dbObject.getJSONObject("data");
-            JSONArray entityArray = dataObject.getJSONArray(Introspector.decapitalize(entity.getClass().getSimpleName()));
-            removeEntity(entityArray, entity);
-        } catch (JSONException e) {
-            throw new DBParseException("Error updating entity", e);
-        }
+        ObjectValue dataObject = dbObject.property("data");
+        ArrayValue entityArray = dataObject.property(Introspector.decapitalize(entity.getClass().getSimpleName()));
+        removeEntity(entityArray, entity);
     }
 
     public static JsonDB fromFile(String file) {
@@ -558,9 +537,9 @@ class ColumnMeta {
 }
 
 interface ColumnParser {
-    Object toJson(Object obj);
+    JsonValue toJson(Object obj);
 
-    Object fromJson(Object data);
+    Object fromJson(JsonValue data);
 
     Class getType();
 }
@@ -569,13 +548,13 @@ class ColumnParserBuilder {
 
     public static final ColumnParser INT_PARSER = new ColumnParser() {
         @Override
-        public Object toJson(Object obj) {
-            return obj;
+        public JsonValue toJson(Object obj) {
+            return new IntValue((Integer) obj);
         }
 
         @Override
-        public Object fromJson(Object data) {
-            return data;
+        public Object fromJson(JsonValue data) {
+            return ((IntValue) data).value();
         }
 
         @Override
@@ -585,13 +564,13 @@ class ColumnParserBuilder {
     };
     public static final ColumnParser STRING_PARSER = new ColumnParser() {
         @Override
-        public Object toJson(Object obj) {
-            return obj;
+        public JsonValue toJson(Object obj) {
+            return new StringValue((String) obj);
         }
 
         @Override
-        public Object fromJson(Object data) {
-            return data;
+        public Object fromJson(JsonValue data) {
+            return ((StringValue) data).value();
         }
 
         @Override
@@ -601,13 +580,13 @@ class ColumnParserBuilder {
     };
     public static final ColumnParser BOOLEAN_PARSER = new ColumnParser() {
         @Override
-        public Object toJson(Object obj) {
-            return obj;
+        public JsonValue toJson(Object obj) {
+            return new BooleanValue((Boolean) obj);
         }
 
         @Override
-        public Object fromJson(Object data) {
-            return data;
+        public Object fromJson(JsonValue data) {
+            return ((BooleanValue) data).value();
         }
 
         @Override
@@ -617,16 +596,13 @@ class ColumnParserBuilder {
     };
     public static final ColumnParser DECIMAL_PARSER = new ColumnParser() {
         @Override
-        public Object toJson(Object obj) {
-            return obj;
+        public JsonValue toJson(Object obj) {
+            return new DoubleValue((Double) obj);
         }
 
         @Override
-        public Object fromJson(Object data) {
-            if (data instanceof Integer) {
-                return ((Integer) data).doubleValue();
-            }
-            return data;
+        public Object fromJson(JsonValue data) {
+            return ((DoubleValue) data).value();
         }
 
         @Override

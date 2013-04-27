@@ -6,7 +6,7 @@
                 {
                     "name": "id",
                     "type": "int",
-                    "id": "true"
+                    "id": true
                 },
                 {
                     "name": "name",
@@ -28,7 +28,7 @@
                 {
                     "name": "id",
                     "type": "int",
-                    "id": "true"
+                    "id": true
                 },
                 {
                     "name": "name",
