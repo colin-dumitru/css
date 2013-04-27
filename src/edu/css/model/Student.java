@@ -25,6 +25,7 @@ public class Student {
     private Double average;
 
     public Student() {
+        passed = true; //TODO this should automatically determined
     }
 
     public Student(String name, Boolean passed, Double average) {
@@ -60,4 +61,11 @@ public class Student {
     public void setAverage(Double average) {
         this.average = average;
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
+
+
