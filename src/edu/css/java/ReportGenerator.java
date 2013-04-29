@@ -4,7 +4,9 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import edu.css.model.Exam;
 import edu.css.model.Student;
+import edu.css.operations.StudentManager;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -68,7 +70,7 @@ public class ReportGenerator {
     }
 
     private PdfPTable createTableHeader(){
-        PdfPTable table = new PdfPTable(4);
+        PdfPTable table = new PdfPTable(6);
         table.setSpacingBefore(15);
         table.setSpacingAfter(15);
         table.setLockedWidth(false);
@@ -101,21 +103,31 @@ public class ReportGenerator {
         PdfPCell c2 = new PdfPCell(new Phrase("Name"));
         table.addCell(c2);
 
-        PdfPCell c3 = new PdfPCell(new Phrase("Passed"));
+        PdfPCell c3 = new PdfPCell(new Phrase("BacAverage"));
         table.addCell(c3);
 
-        PdfPCell c4 = new PdfPCell(new Phrase("Average"));
+        PdfPCell c4 = new PdfPCell(new Phrase("ExamMark"));
         table.addCell(c4);
+
+        PdfPCell c5 = new PdfPCell(new Phrase("Average"));
+        table.addCell(c5);
+
+        PdfPCell c6 = new PdfPCell(new Phrase("Passed"));
+        table.addCell(c6);
+
 
         return table;
     }
 
     private void addTableData(PdfPTable table){
         for (Student student : studentList) {
+            Exam exam = StudentManager.getExamForStudent(student);
             table.addCell(getCellValue(student.getId()));
             table.addCell(getCellValue(student.getName()));
-            table.addCell(getCellValue(student.getPassed()));
             table.addCell(getCellValue(student.getAverage()));
+            table.addCell(getCellValue(exam.getMark()));
+            table.addCell(getCellValue(StudentManager.getPassingMark(student, exam)));
+            table.addCell(getCellValue(student.getPassed()));
 
 //            table.addCell(getCellValue(student.getNume()));
 //            table.addCell(getCellValue(student.getPrenume()));

@@ -1,5 +1,7 @@
 package edu.css.model;
 
+import edu.css.operations.StudentManager;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Dinus
@@ -9,14 +11,18 @@ package edu.css.model;
  */
 public class StudentExportMetadata
 {
-    public static String[] columnNames = {"Id","Name","Passed","Average"};
+    public static String[] columnNames = {"Id","Name","BacAverage","ExamMark","Average","Passed"};
 
     public static String[] getDataVector(Student student){
         String[] values = new String[7];
+        Exam exam = StudentManager.getExamForStudent(student);
         values[0] = student.getId().toString();
         values[1] = student.getName();
-        values[2] = student.getPassed().toString();
-        values[3] = student.getAverage().toString();
+        values[2] = student.getAverage().toString();
+        values[3] = exam.getMark().toString();
+        values[4] = StudentManager.getPassingMark(student, exam).toString();
+        values[5] = student.getPassed().toString();
+
 
         return values;
     }

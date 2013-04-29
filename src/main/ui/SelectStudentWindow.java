@@ -1,6 +1,7 @@
 package main.ui;
 
 import edu.css.java.ReportGenerator;
+import edu.css.model.Exam;
 import edu.css.model.Student;
 import edu.css.operations.StudentManager;
 
@@ -98,7 +99,9 @@ public class SelectStudentWindow extends JDialog {
     private void onDeleteButtonClick(){
         Student student = getSelectedIndex("Delete");
         if(student != null){
+            Exam exam = StudentManager.getExamForStudent(student);
             StudentManager.deleteStudent(student);
+            StudentManager.deleteExam(exam);
             setStudentsComboBox();
         }
     }

@@ -2,6 +2,7 @@ package edu.css.operations;
 
 import edu.css.db.JsonDB;
 import edu.css.db.JsonDBImpl;
+import edu.css.model.Exam;
 import edu.css.model.Student;
 
 import java.io.File;
@@ -55,6 +56,48 @@ public class StudentManager {
         studentsDB.begin();
         studentsDB.delete(student);
         studentsDB.end(true);
+    }
+
+    public static void addExam(Exam exam)
+    {
+        studentsDB.begin();
+        studentsDB.save(exam);
+        studentsDB.end(true);
+    }
+
+    public static void updateExam(Exam exam)
+    {
+        studentsDB.begin();
+        studentsDB.save(exam);
+        studentsDB.end(true);
+    }
+
+    public static void deleteExam(Exam exam)
+    {
+        studentsDB.begin();
+        studentsDB.delete(exam);
+        studentsDB.end(true);
+    }
+
+    public static Exam getExamForStudent(Student student)            {
+        studentsDB.begin();
+        List<Exam> examList = studentsDB.getAll(Exam.class);
+        studentsDB.end(false);
+        for (Exam exam : examList) {
+            if(exam.getStudentId() == student.getId())
+                return exam;
+        }
+
+        return null;
+    }
+
+    public static Double getPassingMark(Student student, Exam exam)
+    {
+        return (student.getAverage() + exam.getMark()) / 2;
+    }
+    public static boolean passed(Student student, Exam exam)
+    {
+        return  getPassingMark(student, exam)> 5;
     }
 
 //    public static void main(String[] args) {

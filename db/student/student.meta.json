@@ -23,7 +23,7 @@
             ]
         },
         {
-            "name": "subject",
+            "name": "exam",
             "columns": [
                 {
                     "name": "id",
@@ -31,16 +31,12 @@
                     "id": true
                 },
                 {
-                    "name": "name",
-                    "type": "string"
-                },
-                {
-                    "name": "passed",
-                    "type": "boolean"
-                },
-                {
-                    "name": "average",
+                    "name": "mark",
                     "type": "decimal"
+                } ,
+                {
+                    "name": "studentId",
+                    "type": "int"
                 }
             ]
         }
