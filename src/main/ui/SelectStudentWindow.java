@@ -1,6 +1,5 @@
 package main.ui;
 
-import edu.css.java.ReportGenerator;
 import edu.css.model.Exam;
 import edu.css.model.Student;
 import edu.css.operations.StudentManager;
@@ -17,14 +16,11 @@ public class SelectStudentWindow extends JDialog {
     private JButton editButton;
     private JButton deleteButton;
     private JButton addButton;
-//    private List<Student> studentList;
 
     public SelectStudentWindow() {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-
-//        studentList = StudentManager.getStudents();
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -75,8 +71,6 @@ public class SelectStudentWindow extends JDialog {
 
     private void setStudentsComboBox(){
         //call to get Students
-        //studentList = ReportGenerator.staticList;
-        //studentList = Arrays.asList();
         List<Student> studentList = StudentManager.getStudents();
         DefaultComboBoxModel model = new DefaultComboBoxModel(studentList.toArray());
         if(model.getSize() == 0){

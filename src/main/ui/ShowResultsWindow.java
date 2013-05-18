@@ -1,6 +1,5 @@
 package main.ui;
 
-import edu.css.java.ReportGenerator;
 import edu.css.model.Student;
 import edu.css.model.StudentExportMetadata;
 import edu.css.operations.StudentManager;
@@ -16,7 +15,6 @@ public class ShowResultsWindow extends JDialog {
     private JButton buttonCancel;
     private JTable studentsTable;
     private JButton reportButton;
-//    List<Student> studentList;
 
     public ShowResultsWindow() {
         setContentPane(contentPane);
@@ -58,10 +56,6 @@ public class ShowResultsWindow extends JDialog {
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
-
-//    private void setStudentList(){
-//        studentList = StudentManager.getStudents();
-//    }
 
     private void updateModel(){
         List<Student> studentList = StudentManager.getStudents();

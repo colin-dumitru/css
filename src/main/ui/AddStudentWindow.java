@@ -13,9 +13,7 @@ public class AddStudentWindow extends JDialog {
     private JButton buttonOK;
     private JButton buttonCancel;
     private JTextField tfName;
-//    private JTextField tfPrenume;
     private JTextField tfBac;
-//    private JTextField tfMedieLiceu;
     private JTextField tfMediaExamen;
     private JTextField admissionAverage;
     private boolean validInput = true;
@@ -70,16 +68,7 @@ public class AddStudentWindow extends JDialog {
         this.tfName.setText(student.getName());
         this.tfBac.setText(student.getAverage().toString());
         this.tfMediaExamen.setText(exam.getMark().toString());
-
-//        this.tfName.setText(student.getNume());
-//        this.tfPrenume.setText(student.getPrenume());
-//        this.tfBac.setText(student.getMedieBac().toString());
-//        this.tfMedieLiceu.setText(student.getMedieLiceu().toString());
-//        this.tfMediaExamen.setText(student.getMedieExamen().toString());
-//        this.admissionAverage.setText(student.getMedieAdmitere().toString());
     }
-
-
 
     private void onOK() {
         validateInput();
@@ -102,14 +91,6 @@ public class AddStudentWindow extends JDialog {
             student.setName(tfName.getText());
         }
 
-//        if(!isvalidName(tfPrenume.getText())){
-//            validInput = false;
-//            tfPrenume.setBackground(Color.RED);
-//        }else {
-//            tfPrenume.setBackground(Color.WHITE);
-//            student.setPrenume(tfPrenume.getText());
-//        }
-
         if(!isValidNumber(tfBac.getText())){
             validInput = false;
             tfBac.setBackground(Color.RED);
@@ -117,16 +98,6 @@ public class AddStudentWindow extends JDialog {
             tfBac.setBackground(Color.WHITE);
             student.setAverage(Double.valueOf(tfBac.getText()));
         }
-
-/*
-        if(!isValidNumber(tfMediaExamen.getText())){
-            validInput = false;
-            tfMediaExamen.setBackground(Color.RED);
-        }else {
-            tfMediaExamen.setBackground(Color.WHITE);
-            exam.setMark(Double.valueOf(tfMediaExamen.getText()));
-        }
-*/
 
         if(tfMediaExamen.getText().trim().length() == 0)
         {
@@ -140,21 +111,6 @@ public class AddStudentWindow extends JDialog {
             exam.setMark(Double.valueOf(tfMediaExamen.getText()));
         }
 
-//        if(!isValidNumber(tfMediaExamen.getText())){
-//            validInput = false;
-//            tfMediaExamen.setBackground(Color.RED);
-//        }else {
-//            tfMediaExamen.setBackground(Color.WHITE);
-//            student.setMedieExamen(Double.valueOf(tfMediaExamen.getText()));
-//        }
-
-//        if(!isValidNumber(tfMedieLiceu.getText())){
-//            validInput = false;
-//            tfMedieLiceu.setBackground(Color.RED);
-//        }else {
-//            tfMedieLiceu.setBackground(Color.WHITE);
-//            student.setMedieLiceu(Double.valueOf(tfMedieLiceu.getText()));
-//        }
         if(validInput)
             student.setPassed(StudentManager.passed(student, exam));
     }
@@ -181,5 +137,17 @@ public class AddStudentWindow extends JDialog {
 
     private void onCancel() {
         dispose();
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public Exam getExam() {
+        return exam;
+    }
+
+    public void setExam(Exam exam) {
+        this.exam = exam;
     }
 }
