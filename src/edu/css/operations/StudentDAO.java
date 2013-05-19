@@ -21,13 +21,6 @@ public class StudentDAO {
         this.jsonDB = jsonDB;
     }
 
-    //    static {
-//        String projectPath = System.getProperty("user.dir");
-//        String dbPath = new File(projectPath, "db/student").getAbsolutePath();
-//
-//        jsonDB = JsonDBImpl.fromFile(dbPath);
-//    }
-
     public List<Student> getStudents()
     {
         jsonDB.begin();

@@ -1,6 +1,8 @@
 package edu.css.operations;
 
+import edu.css.db.JsonDB;
 import edu.css.model.Student;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -18,10 +20,28 @@ import static org.mockito.Mockito.*;
  */
 public class StudentDAOTest {
 
+    private JsonDB jsonDBMock;
+    private List<Student> studentList;
+
+    @Before
+    public void setUp()
+    {
+
+        jsonDBMock = mock(JsonDB.class);
+        Student student = new Student();
+        student.setName("Dinu");
+        student.setAverage(7.5);
+
+        studentList = new LinkedList<>();
+        studentList.add(student);
+
+        when(jsonDBMock.getAll(Student.class)).thenReturn(studentList);
+    }
+
     @Test
-    public void zeroTest() {
+    public void simpleMockingTest() {
         StudentDAO studentDAO = mock(StudentDAO.class);
-        List<Student> studentList = new LinkedList<Student>();
+        List<Student> studentList = new LinkedList<>();
 
         Student student = new Student();
 
@@ -39,11 +59,51 @@ public class StudentDAOTest {
     }
 
     @Test
-    public void firstTest() {
-//
-//        JsonDBImpl mockedJsonDB = mock(JsonDBImpl.class);
-//
-//        when(mockedJsonDB.fromFile)
+    public void getStudentsTest() {
+        StudentDAO studentDAO = new StudentDAO(jsonDBMock);
 
+        List<Student> foundStudents = studentDAO.getStudents();
+
+        assertEquals("Different student lists", studentList, foundStudents);
+        verify(jsonDBMock).begin();
+        verify(jsonDBMock).end(false); // no changes should be
     }
+
+    @Test
+    public void newStudentTest() {
+        StudentDAO studentDAO = new StudentDAO(jsonDBMock);
+
+        Student newStudent = new Student("Andrew", false, 7.9);
+        studentDAO.addStudent(newStudent);
+
+        verify(jsonDBMock).begin();
+        verify(jsonDBMock).save(newStudent);
+        verify(jsonDBMock).end(true); // should save
+    }
+
+    @Test
+    public void updateStudentTest() {
+
+        StudentDAO studentDAO = new StudentDAO(jsonDBMock);
+
+        Student newStudent = new Student("Andrew", false, 7.9);
+        studentDAO.updateStudent(newStudent);
+
+        verify(jsonDBMock).begin();
+        verify(jsonDBMock).save(newStudent);
+        verify(jsonDBMock).end(true); // should save
+    }
+
+    @Test
+    public void deleteStudentTest() {
+
+        StudentDAO studentDAO = new StudentDAO(jsonDBMock);
+        Student existingStudent = studentList.get(0);
+        studentDAO.deleteStudent(existingStudent);
+
+        verify(jsonDBMock).begin();
+        verify(jsonDBMock).delete(existingStudent);
+        verify(jsonDBMock).end(true);
+    }
+
 }
