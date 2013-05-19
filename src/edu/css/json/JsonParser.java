@@ -8,7 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static java.util.Arrays.asList;
 
 /**
  * Catalin Dumitru
@@ -46,9 +47,6 @@ public class JsonParser {
         return chainBuilder.build(input.trim()).value;
     }
 
-    public String save(JsonValue jsonValue) {
-        return null;
-    }
 
     public static abstract class JsonValue {
         @Override
@@ -144,9 +142,22 @@ public class JsonParser {
     }
 
     public static class ObjectValue extends JsonValue {
-        private Map<String, JsonValue> properties = newHashMap();
+        private Map<String, JsonValue> properties = newLinkedHashMap();
 
-        public Map<String, JsonValue> getProperties() {
+        public ObjectValue() {
+        }
+
+        public ObjectValue(Map<String, JsonValue> properties) {
+            this.properties.putAll(properties);
+        }
+
+        public ObjectValue(Map.Entry<String, JsonValue>... properties) {
+            for (Map.Entry<String, JsonValue> property : properties) {
+                this.properties.put(property.getKey(), property.getValue());
+            }
+        }
+
+        public Map<String, JsonValue> properties() {
             return properties;
         }
 
@@ -175,6 +186,14 @@ public class JsonParser {
 
     public static class ArrayValue extends JsonValue {
         private List<JsonValue> properties = newArrayList();
+
+        public ArrayValue(List<JsonValue> properties) {
+            this.properties.addAll(properties);
+        }
+
+        public ArrayValue(JsonValue... properties) {
+            this.properties.addAll(asList(properties));
+        }
 
         public List<JsonValue> properties() {
             return properties;
@@ -257,7 +276,7 @@ class ObjectBuilder implements Builder {
             throw new JsonParseException("Invalid property format");
         }
         BuildResult propertyValue = chainBuilder.build(input.substring(1).trim());
-        value.getProperties().put(propertyName, propertyValue.value);
+        value.properties().put(propertyName, propertyValue.value);
         return propertyValue.remaining;
     }
 
@@ -310,14 +329,14 @@ class IntBuilder implements Builder {
 
     @Override
     public boolean matches(String input) {
-        Pattern pattern = Pattern.compile("^(\\d+\\b)");
+        Pattern pattern = Pattern.compile("^(-?\\d+\\b)");
         Matcher matcher = pattern.matcher(input);
         return matcher.find();
     }
 
     @Override
     public BuildResult build(String input, ChainBuilder chainBuilder) {
-        Pattern pattern = Pattern.compile("^(\\d+\\b)");
+        Pattern pattern = Pattern.compile("^(-?\\d+\\b)");
         Matcher matcher = pattern.matcher(input);
         if (!matcher.find()) {
             throw new JsonParseException("Invalid object format");
@@ -376,14 +395,14 @@ class DoubleBuilder implements Builder {
 
     @Override
     public boolean matches(String input) {
-        Pattern pattern = Pattern.compile("^(\\d+\\.\\d+)");
+        Pattern pattern = Pattern.compile("^(-?\\d+\\.\\d+)");
         Matcher matcher = pattern.matcher(input);
         return matcher.find();
     }
 
     @Override
     public BuildResult build(String input, ChainBuilder chainBuilder) {
-        Pattern pattern = Pattern.compile("^(\\d+\\.\\d+)");
+        Pattern pattern = Pattern.compile("^(-?\\d+\\.\\d+)");
         Matcher matcher = pattern.matcher(input);
         if (!matcher.find()) {
             throw new JsonParseException("Invalid object format");

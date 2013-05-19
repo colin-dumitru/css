@@ -10,7 +10,7 @@ import java.util.Scanner;
  * Date: 4/27/13
  * Time: 3:14 PM
  */
-public class JsonTest {
+public class StudentJsonTest {
     @Test
     public void testLoadStudent() throws Exception {
         JsonParser parser = new JsonParser();

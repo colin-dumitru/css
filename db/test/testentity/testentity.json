@@ -1,0 +1,7 @@
+{"data": {
+    "testEntity": [
+        [2, 10, 123.456, "abc", true]
+    ]
+}, "seq": {
+    "testEntity": 2
+}}

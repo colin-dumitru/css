@@ -1,6 +1,7 @@
 package edu.css.db;
 
 
+import com.google.common.base.Joiner;
 import edu.css.json.JsonParser;
 
 import java.beans.Introspector;
@@ -33,9 +34,10 @@ public class JsonDBImpl implements JsonDB {
         this.dataFile = dataFile;
     }
 
-    private JsonDBImpl performValidation() {
+    private JsonDBImpl performAndLoadValidation() {
         checkIfMetaExist();
         checkIfDataExists();
+        loadMetadata();
         checkIfKeyFieldExists();
 
         return this;
@@ -299,7 +301,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> EntityMeta checkMetadataPresent(Class<T> clazz) {
-        EntityMeta metadata = entities.get(Introspector.decapitalize(clazz.getSimpleName().toLowerCase()));
+        EntityMeta metadata = entities.get(Introspector.decapitalize(clazz.getSimpleName()));
         if (metadata == null) {
             throw new DBParseException("No metadata was found for entity");
         }
@@ -320,7 +322,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     @Override
-    public <T> T find(Object id, Class<T> clazz) {
+    public <T> T find(Integer id, Class<T> clazz) {
         List<T> loadedEntities = getAll(clazz);
         for (T loadedEntity : loadedEntities) {
             if (matches(loadedEntity, id, clazz)) {
@@ -330,15 +332,15 @@ public class JsonDBImpl implements JsonDB {
         return null;
     }
 
-    private <T> boolean matches(T loadedEntity, Object id, Class<T> clazz) {
+    private <T> boolean matches(T loadedEntity, Integer id, Class<T> clazz) {
         return getIdValue(loadedEntity, clazz).equals(id);
     }
 
-    private <T> Object getIdValue(T loadedEntity, Class<T> clazz) {
+    private <T> Integer getIdValue(T loadedEntity, Class<T> clazz) {
         EntityMeta entityMeta = entities.get(Introspector.decapitalize(clazz.getSimpleName()));
         Field keyField = getField(entityMeta.getKeyColumn().getName(), clazz);
         keyField.setAccessible(true);
-        return getFieldValue(loadedEntity, keyField);
+        return (Integer) getFieldValue(loadedEntity, keyField);
     }
 
     private <T> Object getFieldValue(T loadedEntity, Field keyField) {
@@ -452,9 +454,11 @@ public class JsonDBImpl implements JsonDB {
     @Override
     public <T> void delete(T entity) {
         checkIfOpened();
-        checkIfMetadata(entity.getClass());
+        if (entity != null) {
+            checkIfMetadata(entity.getClass());
 
-        tryToDelete(entity);
+            tryToDelete(entity);
+        }
     }
 
     private <T> void tryToDelete(T entity) {
@@ -464,40 +468,25 @@ public class JsonDBImpl implements JsonDB {
     }
 
     public static JsonDB fromFile(String file) {
+        file = convertPath(file);
         int beginIndex = file.lastIndexOf(File.separator);
         String dbName = file.substring(beginIndex == -1 ? 0 : beginIndex);
         File metaFile = new File(file + File.separator + dbName + ".meta.json");
         File dataFile = new File(file + File.separator + dbName + ".json");
 
-        return new JsonDBImpl(metaFile, dataFile).performValidation().loadMetadata();
+        return new JsonDBImpl(metaFile, dataFile).performAndLoadValidation();
+    }
+
+    private static String convertPath(String file) {
+        if (file.indexOf('/') != -1) {
+            return Joiner.on(File.separator).join(file.split("/"));
+        }
+        if (file.indexOf('\\') != -1) {
+            return Joiner.on(File.separator).join(file.split("\\\\"));
+        }
+        return file;
     }
 }
-
-//class JsonDBCreator
-//{
-//    public void createDb(String path, Class clazz)
-//    {
-//        String dbName = Introspector.decapitalize(clazz.getSimpleName());
-//
-//        File metaFile = new File(path + File.separator + dbName + ".meta.json");
-//        if(!metaFile.exists())
-//        {
-//            EntityMeta entityMeta = createEntityMeta(clazz);
-//            writeToFile(path, entityMeta);
-//        }
-//    }
-//
-//    private EntityMeta createEntityMeta(Class clazz)
-//    {
-//        //TODO
-//        return null;
-//    }
-//
-//    private void writeToFile(String path, EntityMeta entityMeta)
-//    {
-//        //TODO
-//    }
-//}
 
 class EntityMeta {
     private String name;
@@ -579,8 +568,12 @@ class ColumnParserBuilder {
         }
 
         @Override
-        public Object fromJson(JsonValue data) {
-            return ((IntValue) data).value();
+        public Integer fromJson(JsonValue data) {
+            if (data instanceof NullValue) {
+                return null;
+            } else {
+                return ((IntValue) data).value();
+            }
         }
 
         @Override
@@ -595,8 +588,12 @@ class ColumnParserBuilder {
         }
 
         @Override
-        public Object fromJson(JsonValue data) {
-            return ((StringValue) data).value();
+        public String fromJson(JsonValue data) {
+            if (data instanceof NullValue) {
+                return null;
+            } else {
+                return ((StringValue) data).value();
+            }
         }
 
         @Override
@@ -604,6 +601,7 @@ class ColumnParserBuilder {
             return String.class;
         }
     };
+
     public static final ColumnParser BOOLEAN_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
@@ -611,8 +609,12 @@ class ColumnParserBuilder {
         }
 
         @Override
-        public Object fromJson(JsonValue data) {
-            return ((BooleanValue) data).value();
+        public Boolean fromJson(JsonValue data) {
+            if (data instanceof NullValue) {
+                return null;
+            } else {
+                return ((BooleanValue) data).value();
+            }
         }
 
         @Override
@@ -622,13 +624,23 @@ class ColumnParserBuilder {
     };
     public static final ColumnParser DECIMAL_PARSER = new ColumnParser() {
         @Override
-        public JsonValue toJson(Object obj) {
-            return new DoubleValue((Double) obj);
+        public DoubleValue toJson(Object obj) {
+            if (obj instanceof Integer) {
+                return new DoubleValue(((Integer) obj).doubleValue());
+            } else {
+                return new DoubleValue((Double) obj);
+            }
         }
 
         @Override
-        public Object fromJson(JsonValue data) {
-            return ((DoubleValue) data).value();
+        public Double fromJson(JsonValue data) {
+            if (data instanceof NullValue) {
+                return null;
+            } else if (data instanceof IntValue) {
+                return ((IntValue) data).value().doubleValue();
+            } else {
+                return ((DoubleValue) data).value();
+            }
         }
 
         @Override

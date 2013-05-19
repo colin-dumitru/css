@@ -1,0 +1,29 @@
+{
+    "entities": [
+        {
+            "name": "testEntity",
+            "columns": [
+                {
+                    "name": "idField",
+                    "type": "int",
+                    "id": true
+                },
+                {
+                    "name": "integerField",
+                    "type": "int"
+                },
+                {
+                    "name": "doubleField",
+                    "type": "decimal"
+                },
+                {
+                    "name": "stringField",
+                    "type": "string"
+                },
+                {
+                    "name": "booleanField",
+                    "type": "boolean"
+                }
+            ]
+        }
+    ]}

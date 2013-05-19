@@ -13,7 +13,7 @@ public interface JsonDB {
 
     <T> List<T> getAll(Class<T> clazz);
 
-    <T> T find(Object id, Class<T> clazz);
+    <T> T find(Integer id, Class<T> clazz);
 
     <T> void delete(T entity);
 

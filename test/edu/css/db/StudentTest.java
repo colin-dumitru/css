@@ -12,7 +12,7 @@ import static org.junit.Assert.assertNotNull;
  * Catalin Dumitru
  * Universitatea Alexandru Ioan Cuza
  */
-public class ParserTest {
+public class StudentTest {
     @Test
     public void testGetAllMeta() throws Exception {
         JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
