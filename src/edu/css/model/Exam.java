@@ -23,12 +23,17 @@ public class Exam {
     @Column
     private Integer studentId;
 
-    public Integer getId() {
-        return id;
+
+    public Exam() {
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public Exam(Double mark, Integer studentId) {
+        this.mark = mark;
+        this.studentId = studentId;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public Double getMark() {

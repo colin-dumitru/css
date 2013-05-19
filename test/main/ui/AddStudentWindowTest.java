@@ -35,7 +35,6 @@ public class AddStudentWindowTest {
         stub(mockStudent.getAverage()).toReturn(5.5);
         stub(mockStudent.getId()).toReturn(1);
         stub(mockStudent.getName()).toReturn("John");
-        stub(mockStudent.getPassed()).toReturn(true);
     }
 
     private void stubMockExam(){
@@ -71,7 +70,6 @@ public class AddStudentWindowTest {
         verify(mockStudent,atMost(1)).getAverage();
 
         verify(mockExam,never()).setStudentId(anyInt());
-        verify(mockExam,never()).setId(anyInt());
         verify(mockExam,atMost(1)).getMark();
     }
 
@@ -84,7 +82,6 @@ public class AddStudentWindowTest {
 
     @Test
     public void testValidateInput() throws Exception {
-        verify(mockStudent,atMost(1)).setPassed(anyBoolean());
         verify(mockStudent,atMost(1)).setAverage(anyDouble());
         verify(mockStudent,atMost(1)).setName(anyString());
 

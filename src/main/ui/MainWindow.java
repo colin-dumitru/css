@@ -2,6 +2,7 @@ package main.ui;
 
 import edu.css.java.ReportGenerator;
 import edu.css.operations.DAOLoader;
+import edu.css.operations.ExamDAO;
 import edu.css.operations.StudentDAO;
 
 import javax.swing.*;
@@ -19,6 +20,7 @@ public class MainWindow extends JDialog {
     private JButton reportButton;
     private JButton viewStudentsButton;
     private static StudentDAO studentDAO = DAOLoader.getStudentDAO();
+    private static ExamDAO examDAO = DAOLoader.getExamDAO();
 
     public MainWindow() {
         setContentPane(contentPane);
@@ -96,7 +98,7 @@ public class MainWindow extends JDialog {
             return;
         }
         String filename = fileChooser.getSelectedFile().getAbsolutePath();
-        ReportGenerator reportGenerator = new ReportGenerator(studentDAO.getStudents(),filename);
+        ReportGenerator reportGenerator = new ReportGenerator(studentDAO.getStudents(), examDAO, filename);
         reportGenerator.generate();
         filename = reportGenerator.getOutputFileName();
         runFile(filename);

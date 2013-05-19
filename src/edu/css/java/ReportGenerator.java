@@ -28,10 +28,11 @@ public class ReportGenerator {
     private String outputFileName;
     private final int Const = 50;
 
-    private ExamDAO examDAO = DAOLoader.getExamDAO();
+    private ExamDAO examDAO;
 
-    public ReportGenerator(List<Student> studentList, String outputFileName) {
+    public ReportGenerator(List<Student> studentList, ExamDAO examDAO, String outputFileName) {
         this.studentList = studentList;
+        this.examDAO = examDAO;
         this.outputFileName = getOutputFileName(outputFileName);
     }
 
@@ -100,7 +101,7 @@ public class ReportGenerator {
             table.addCell(getCellValue(student.getAverage()));
             table.addCell(getCellValue(exam.getMark()));
             table.addCell(getCellValue(AdmissionHelper.getPassingMark(student, exam)));
-            table.addCell(getCellValue(student.getPassed()));
+            table.addCell(getCellValue(AdmissionHelper.passed(student, exam)));
         }
     }
 

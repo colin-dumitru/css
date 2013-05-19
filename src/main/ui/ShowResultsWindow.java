@@ -1,5 +1,6 @@
 package main.ui;
 
+import edu.css.model.Exam;
 import edu.css.model.Student;
 import edu.css.model.StudentExportMetadata;
 import edu.css.operations.DAOLoader;
@@ -19,6 +20,7 @@ public class ShowResultsWindow extends JDialog {
     private JButton reportButton;
 
     private StudentDAO studentDAO = DAOLoader.getStudentDAO();
+    private ExamDAO examDAO = DAOLoader.getExamDAO();
 
     public ShowResultsWindow() {
         setContentPane(contentPane);
@@ -67,7 +69,11 @@ public class ShowResultsWindow extends JDialog {
         DefaultTableModel tableModel = new DefaultTableModel(columnNames,studentList.size());
         Object[][] data = new Object[studentList.size()][columnNames.length];
         for (int i = 0; i < studentList.size(); i++) {
-            data[i] = StudentExportMetadata.getDataVector(studentList.get(i));
+
+            Student student = studentList.get(i);
+            Exam exam = examDAO.getExamForStudent(student);
+
+            data[i] = StudentExportMetadata.getDataVector(student, exam);
         }
         tableModel.setDataVector(data,columnNames);
         studentsTable.setModel(tableModel);

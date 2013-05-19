@@ -15,17 +15,15 @@ import edu.css.operations.StudentDAO;
 public class StudentExportMetadata
 {
     public static String[] columnNames = {"Id","Name","BacAverage","ExamMark","Average","Passed"};
-    private static ExamDAO examDAO = DAOLoader.getExamDAO();
 
-    public static String[] getDataVector(Student student){
-        String[] values = new String[7];
-        Exam exam = examDAO.getExamForStudent(student);
+    public static String[] getDataVector(Student student, Exam exam){
+        String[] values = new String[6];
         values[0] = student.getId().toString();
         values[1] = student.getName();
         values[2] = student.getAverage().toString();
         values[3] = exam.getMark().toString();
         values[4] = AdmissionHelper.getPassingMark(student, exam).toString();
-        values[5] = student.getPassed().toString();
+        values[5] = String.valueOf(AdmissionHelper.passed(student, exam));
 
 
         return values;
