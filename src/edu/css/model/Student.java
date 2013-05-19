@@ -19,18 +19,13 @@ public class Student {
     private String name;
 
     @Column
-    private Boolean passed;
-
-    @Column
     private Double average;
 
     public Student() {
-        passed = true; //TODO this should automatically determined
     }
 
-    public Student(String name, Boolean passed, Double average) {
+    public Student(String name, Double average) {
         this.name = name;
-        this.passed = passed;
         this.average = average;
     }
 
@@ -42,20 +37,12 @@ public class Student {
         return name;
     }
 
-    public Boolean getPassed() {
-        return passed;
-    }
-
     public Double getAverage() {
         return average;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setPassed(Boolean passed) {
-        this.passed = passed;
     }
 
     public void setAverage(Double average) {

@@ -118,8 +118,8 @@ public class AddStudentWindow extends JDialog {
             exam.setMark(Double.valueOf(tfMediaExamen.getText()));
         }
 
-        if(validInput)
-            student.setPassed(AdmissionHelper.passed(student, exam));
+//        if(validInput)
+//            student.setPassed(AdmissionHelper.passed(student, exam));
     }
 
     private boolean isvalidName(String name){

@@ -18,7 +18,7 @@ public class AdmissionHelperTest {
     @Test
     public void getMarkTest()
     {
-        Student student = new Student("Dinu", false, 7.5);
+        Student student = new Student("Dinu", 7.5);
 
         Exam exam = new Exam();
         exam.setMark(7.1);
@@ -29,7 +29,7 @@ public class AdmissionHelperTest {
     @Test
     public void passedTest()
     {
-        Student student = new Student("Dinu", false, 5.0);
+        Student student = new Student("Dinu", 5.0);
 
         Exam exam = new Exam();
         exam.setMark(5.0);

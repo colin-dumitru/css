@@ -73,7 +73,7 @@ public class StudentDAOTest {
     public void newStudentTest() {
         StudentDAO studentDAO = new StudentDAO(jsonDBMock);
 
-        Student newStudent = new Student("Andrew", false, 7.9);
+        Student newStudent = new Student("Andrew", 7.9);
         studentDAO.addStudent(newStudent);
 
         verify(jsonDBMock).begin();
@@ -86,7 +86,7 @@ public class StudentDAOTest {
 
         StudentDAO studentDAO = new StudentDAO(jsonDBMock);
 
-        Student newStudent = new Student("Andrew", false, 7.9);
+        Student newStudent = new Student("Andrew", 7.9);
         studentDAO.updateStudent(newStudent);
 
         verify(jsonDBMock).begin();

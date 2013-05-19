@@ -13,10 +13,6 @@
                     "type": "string"
                 },
                 {
-                    "name": "passed",
-                    "type": "boolean"
-                },
-                {
                     "name": "average",
                     "type": "decimal"
                 }

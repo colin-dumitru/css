@@ -39,7 +39,7 @@ public class StudentTest {
         JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
-        Student student = new Student("Virgil", false, 10d);
+        Student student = new Student("Virgil", 10d);
         db.save(student);
         db.end(true);
 
@@ -74,7 +74,7 @@ public class StudentTest {
         JsonDB db = JsonDBImpl.fromFile("db\\test\\student");
 
         db.begin();
-        Student student = new Student("Virgil", false, 10d);
+        Student student = new Student("Virgil", 10d);
         db.save(student);
         db.end(true);
 
