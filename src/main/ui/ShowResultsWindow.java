@@ -2,7 +2,9 @@ package main.ui;
 
 import edu.css.model.Student;
 import edu.css.model.StudentExportMetadata;
-import edu.css.operations.StudentManager;
+import edu.css.operations.DAOLoader;
+import edu.css.operations.ExamDAO;
+import edu.css.operations.StudentDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,6 +17,8 @@ public class ShowResultsWindow extends JDialog {
     private JButton buttonCancel;
     private JTable studentsTable;
     private JButton reportButton;
+
+    private StudentDAO studentDAO = DAOLoader.getStudentDAO();
 
     public ShowResultsWindow() {
         setContentPane(contentPane);
@@ -58,7 +62,7 @@ public class ShowResultsWindow extends JDialog {
     }
 
     private void updateModel(){
-        List<Student> studentList = StudentManager.getStudents();
+        List<Student> studentList = studentDAO.getStudents();
         String[] columnNames = StudentExportMetadata.columnNames;
         DefaultTableModel tableModel = new DefaultTableModel(columnNames,studentList.size());
         Object[][] data = new Object[studentList.size()][columnNames.length];

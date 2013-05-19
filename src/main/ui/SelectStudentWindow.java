@@ -2,7 +2,9 @@ package main.ui;
 
 import edu.css.model.Exam;
 import edu.css.model.Student;
-import edu.css.operations.StudentManager;
+import edu.css.operations.DAOLoader;
+import edu.css.operations.ExamDAO;
+import edu.css.operations.StudentDAO;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -16,6 +18,9 @@ public class SelectStudentWindow extends JDialog {
     private JButton editButton;
     private JButton deleteButton;
     private JButton addButton;
+
+    private StudentDAO studentDAO = DAOLoader.getStudentDAO();
+    private ExamDAO examDAO = DAOLoader.getExamDAO();
 
     public SelectStudentWindow() {
         setContentPane(contentPane);
@@ -71,7 +76,7 @@ public class SelectStudentWindow extends JDialog {
 
     private void setStudentsComboBox(){
         //call to get Students
-        List<Student> studentList = StudentManager.getStudents();
+        List<Student> studentList = studentDAO.getStudents();
         DefaultComboBoxModel model = new DefaultComboBoxModel(studentList.toArray());
         if(model.getSize() == 0){
             model.addElement("No items");
@@ -93,9 +98,9 @@ public class SelectStudentWindow extends JDialog {
     private void onDeleteButtonClick(){
         Student student = getSelectedIndex("Delete");
         if(student != null){
-            Exam exam = StudentManager.getExamForStudent(student);
-            StudentManager.deleteStudent(student);
-            StudentManager.deleteExam(exam);
+            Exam exam = examDAO.getExamForStudent(student);
+            studentDAO.deleteStudent(student);
+            examDAO.deleteExam(exam);
             setStudentsComboBox();
         }
     }

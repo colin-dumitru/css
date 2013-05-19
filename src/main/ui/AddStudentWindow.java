@@ -2,7 +2,10 @@ package main.ui;
 
 import edu.css.model.Exam;
 import edu.css.model.Student;
-import edu.css.operations.StudentManager;
+import edu.css.operations.AdmissionHelper;
+import edu.css.operations.DAOLoader;
+import edu.css.operations.ExamDAO;
+import edu.css.operations.StudentDAO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +20,10 @@ public class AddStudentWindow extends JDialog {
     private JTextField tfMediaExamen;
     private JTextField admissionAverage;
     private boolean validInput = true;
+
+    private StudentDAO studentDAO = DAOLoader.getStudentDAO();
+    private ExamDAO examDAO = DAOLoader.getExamDAO();
+
     private Student student;
     private Exam exam;
 
@@ -63,7 +70,7 @@ public class AddStudentWindow extends JDialog {
             onCancel();
         }
         this.student = student;
-        this.exam = StudentManager.getExamForStudent(student);
+        this.exam = examDAO.getExamForStudent(student);
         this.buttonOK.setText("Edit");
         this.tfName.setText(student.getName());
         this.tfBac.setText(student.getAverage().toString());
@@ -75,9 +82,9 @@ public class AddStudentWindow extends JDialog {
         if(!validInput){
             return;
         }
-        StudentManager.addStudent(student);
+        studentDAO.addStudent(student);
         exam.setStudentId(student.getId());
-        StudentManager.addExam(exam);
+        examDAO.addExam(exam);
         dispose();
     }
 
@@ -112,7 +119,7 @@ public class AddStudentWindow extends JDialog {
         }
 
         if(validInput)
-            student.setPassed(StudentManager.passed(student, exam));
+            student.setPassed(AdmissionHelper.passed(student, exam));
     }
 
     private boolean isvalidName(String name){

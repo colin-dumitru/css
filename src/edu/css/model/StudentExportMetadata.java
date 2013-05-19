@@ -1,6 +1,9 @@
 package edu.css.model;
 
-import edu.css.operations.StudentManager;
+import edu.css.operations.AdmissionHelper;
+import edu.css.operations.DAOLoader;
+import edu.css.operations.ExamDAO;
+import edu.css.operations.StudentDAO;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,15 +15,16 @@ import edu.css.operations.StudentManager;
 public class StudentExportMetadata
 {
     public static String[] columnNames = {"Id","Name","BacAverage","ExamMark","Average","Passed"};
+    private static ExamDAO examDAO = DAOLoader.getExamDAO();
 
     public static String[] getDataVector(Student student){
         String[] values = new String[7];
-        Exam exam = StudentManager.getExamForStudent(student);
+        Exam exam = examDAO.getExamForStudent(student);
         values[0] = student.getId().toString();
         values[1] = student.getName();
         values[2] = student.getAverage().toString();
         values[3] = exam.getMark().toString();
-        values[4] = StudentManager.getPassingMark(student, exam).toString();
+        values[4] = AdmissionHelper.getPassingMark(student, exam).toString();
         values[5] = student.getPassed().toString();
 
 

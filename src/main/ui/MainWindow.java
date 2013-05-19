@@ -1,7 +1,8 @@
 package main.ui;
 
 import edu.css.java.ReportGenerator;
-import edu.css.operations.StudentManager;
+import edu.css.operations.DAOLoader;
+import edu.css.operations.StudentDAO;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -17,6 +18,7 @@ public class MainWindow extends JDialog {
     private JButton calculateButton;
     private JButton reportButton;
     private JButton viewStudentsButton;
+    private static StudentDAO studentDAO = DAOLoader.getStudentDAO();
 
     public MainWindow() {
         setContentPane(contentPane);
@@ -94,7 +96,7 @@ public class MainWindow extends JDialog {
             return;
         }
         String filename = fileChooser.getSelectedFile().getAbsolutePath();
-        ReportGenerator reportGenerator = new ReportGenerator(StudentManager.getStudents(),filename);
+        ReportGenerator reportGenerator = new ReportGenerator(studentDAO.getStudents(),filename);
         reportGenerator.generate();
         filename = reportGenerator.getOutputFileName();
         runFile(filename);
@@ -130,6 +132,11 @@ public class MainWindow extends JDialog {
     }
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         MainWindow dialog = new MainWindow();
         dialog.pack();
         dialog.setVisible(true);
