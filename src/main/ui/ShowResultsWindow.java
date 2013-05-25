@@ -64,8 +64,16 @@ public class ShowResultsWindow extends JDialog {
     }
 
     private void updateModel(){
+
+        assert studentDAO != null : AddStudentWindow.ASSERTION_FAIL + "updateModel, studentDAO cannot be null";
+        assert examDAO != null : AddStudentWindow.ASSERTION_FAIL + "updateModel, examDAO cannot be null";
+
         List<Student> studentList = studentDAO.getStudents();
+        assert studentList != null : AddStudentWindow.ASSERTION_FAIL + "updateModel, studentsList cannot be null";
+
         String[] columnNames = StudentExportMetadata.columnNames;
+        assert columnNames != null && columnNames.length == 6 : AddStudentWindow.ASSERTION_FAIL +
+                                                                "updateModel, invalid columnNames array";
         DefaultTableModel tableModel = new DefaultTableModel(columnNames,studentList.size());
         Object[][] data = new Object[studentList.size()][columnNames.length];
         for (int i = 0; i < studentList.size(); i++) {
@@ -73,8 +81,15 @@ public class ShowResultsWindow extends JDialog {
             Student student = studentList.get(i);
             Exam exam = examDAO.getExamForStudent(student);
 
+            assert student != null : AddStudentWindow.ASSERTION_FAIL + "updateModel, student cannot be null";
+            assert exam != null : AddStudentWindow.ASSERTION_FAIL + "updateModel, exam cannot be null";
+
             data[i] = StudentExportMetadata.getDataVector(student, exam);
         }
+
+        assert data != null && data.length == studentList.size() : AddStudentWindow.ASSERTION_FAIL +
+                                                                   "updateModel, invalid data";
+
         tableModel.setDataVector(data,columnNames);
         studentsTable.setModel(tableModel);
     }

@@ -81,6 +81,7 @@ public class MainWindow extends JDialog {
 
     private void onSelectStudent(){
         SelectStudentWindow selectStudentWindow = new SelectStudentWindow();
+        assert selectStudentWindow != null : AddStudentWindow.ASSERTION_FAIL + "onSelectStudent invalid object initialization";
         runWindow(selectStudentWindow);
     }
 
@@ -98,15 +99,23 @@ public class MainWindow extends JDialog {
             return;
         }
         String filename = fileChooser.getSelectedFile().getAbsolutePath();
+        assert filename != null : AddStudentWindow.ASSERTION_FAIL + "onReport, invalid filename path";
+
+        assert studentDAO != null : AddStudentWindow.ASSERTION_FAIL + "onReport, invalid studentDAO object";
+        assert examDAO != null : AddStudentWindow.ASSERTION_FAIL + "onReport, invalid examDAO object";
+
         ReportGenerator reportGenerator = new ReportGenerator(studentDAO.getStudents(), examDAO, filename);
         reportGenerator.generate();
+
         filename = reportGenerator.getOutputFileName();
+        assert filename != null && filename.endsWith(".pdf") : AddStudentWindow.ASSERTION_FAIL + "onReport, invalid file format";
         runFile(filename);
     }
 
     public static void runFile(String filename){
         if (Desktop.isDesktopSupported()) {
             try {
+                assert filename != null : AddStudentWindow.ASSERTION_FAIL + "runFile, invalid filename parameter";
                 File myFile = new File(filename);
                 if(!myFile.exists()){
                     showMessageWindow("File doesn't exist:\n\t " + filename,"Report");
@@ -121,9 +130,11 @@ public class MainWindow extends JDialog {
 
     private void onViewStudent(){
         ShowResultsWindow showResultsWindow = new ShowResultsWindow();
+        assert showResultsWindow != null : AddStudentWindow.ASSERTION_FAIL + "onViewStudent invalid object initialization";
         runWindow(showResultsWindow);
     }
     public static void runWindow(JDialog window){
+        assert window != null : AddStudentWindow.ASSERTION_FAIL + "runWindow , invalid Parameter";
         window.pack();
         window.setLocationRelativeTo(null);
         window.setVisible(true);

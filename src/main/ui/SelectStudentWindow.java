@@ -76,7 +76,10 @@ public class SelectStudentWindow extends JDialog {
 
     private void setStudentsComboBox(){
         //call to get Students
+        assert studentDAO != null : AddStudentWindow.ASSERTION_FAIL + "setStudentsComboBox, studentDAO cannot be null";
         List<Student> studentList = studentDAO.getStudents();
+        assert studentList != null : AddStudentWindow.ASSERTION_FAIL + "setStudentsComboBox, studentsList cannot be null";
+
         DefaultComboBoxModel model = new DefaultComboBoxModel(studentList.toArray());
         if(model.getSize() == 0){
             model.addElement("No items");
@@ -97,18 +100,36 @@ public class SelectStudentWindow extends JDialog {
 
     private void onDeleteButtonClick(){
         Student student = getSelectedIndex("Delete");
+        assert student != null : AddStudentWindow.ASSERTION_FAIL + "onDeleteButtonClick, student cannot be null";
+
         if(student != null){
+            assert studentDAO != null : AddStudentWindow.ASSERTION_FAIL + "onDeleteButtonClick, studentDAO cannot be null";
+            assert examDAO != null : AddStudentWindow.ASSERTION_FAIL + "onDeleteButtonClick, examDAO cannot be null";
+
             Exam exam = examDAO.getExamForStudent(student);
+
+            int studentCount = studentDAO.getStudents().size();
             studentDAO.deleteStudent(student);
+            assert studentDAO.getStudents().size() == studentCount-1 : AddStudentWindow.ASSERTION_FAIL + "" +
+                    "                                                       onDeleteOperation, invalid delete student operation";
+
             examDAO.deleteExam(exam);
+            assert examDAO.getExamForStudent(student) == null: AddStudentWindow.ASSERTION_FAIL +
+                                                                   "onDeleteOperation, invalid delete exam operation";
+
             setStudentsComboBox();
         }
     }
 
     private Student getSelectedIndex(String action){
+        assert action.equalsIgnoreCase("delete") ||
+               action.equalsIgnoreCase("edit") : AddStudentWindow.ASSERTION_FAIL +
+                                                    "getSelectedIndex, invalid action [delete / edit ] allowed, no " + action +" allowed";
         try{
             Student selectedStudent = (Student) studentsComboBox.getSelectedItem();
-            if(0 == JOptionPane.showConfirmDialog(null,"Are you sure you want to " + action.toLowerCase() + selectedStudent.toString(),action.toUpperCase(), JOptionPane.YES_NO_OPTION )){
+            assert selectedStudent != null : AddStudentWindow.ASSERTION_FAIL +
+                                                "getSelectedIndex, invalid selected object, student expected, got null";
+            if(0 == JOptionPane.showConfirmDialog(null,"Are you sure you want to " + action.toLowerCase() + " " + selectedStudent.toString(),action.toUpperCase(), JOptionPane.YES_NO_OPTION )){
                 return selectedStudent;
             }
         }catch (ClassCastException e){
@@ -122,6 +143,7 @@ public class SelectStudentWindow extends JDialog {
         if(student == null){
             return;
         }
+        assert student != null : AddStudentWindow.ASSERTION_FAIL + "onEditButton, student cannot be null";
         AddStudentWindow addStudentWindow = new AddStudentWindow(student);
         MainWindow.runWindow(addStudentWindow);
         setStudentsComboBox();

@@ -46,6 +46,7 @@ public class ReportGenerator {
     public void generate() {
         try {
         Document document = new Document(PageSize.A4,Const,Const,Const,Const);
+        assert outputFileName != null : "Assertion Fail, invalid outputPath";
         PdfWriter.getInstance(document, new FileOutputStream(outputFileName,false));
         document.open();
 
@@ -94,8 +95,17 @@ public class ReportGenerator {
     }
 
     private void addTableData(PdfPTable table){
+        assert studentList != null : "Assertion Fail, studentList cannot be null";
         for (Student student : studentList) {
             Exam exam = examDAO.getExamForStudent(student);
+
+            assert exam != null : "Assertion Fail, exam for student cannot be null";
+            assert student.getAverage() <= 10 : "Assertion Fail, student average cannot be more than 10";
+            assert exam.getMark() <= 10 : "Assertion Fail, exam mark cannot be more than 10";
+            assert AdmissionHelper.getPassingMark(student,exam) >= 5.0 && AdmissionHelper.passed(student,exam) ||
+                   AdmissionHelper.getPassingMark(student,exam) < 5.0 && !AdmissionHelper.passed(student,exam) :
+                    "Assertion Fail, invalid admission rate calculation";
+
             table.addCell(getCellValue(student.getId()));
             table.addCell(getCellValue(student.getName()));
             table.addCell(getCellValue(student.getAverage()));
