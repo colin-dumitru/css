@@ -18,6 +18,7 @@ public class StudentDAO {
     private JsonDB jsonDB;
 
     public StudentDAO(JsonDB jsonDB) {
+        assert jsonDB != null : "Invalid database : NullValue";
         this.jsonDB = jsonDB;
     }
 
@@ -32,6 +33,7 @@ public class StudentDAO {
 
     public void addStudent(Student student)
     {
+        assert student != null : "Invalid student argument NullValue";
         jsonDB.begin();
         jsonDB.save(student);
         jsonDB.end(true);
@@ -39,6 +41,7 @@ public class StudentDAO {
 
     public void updateStudent(Student student)
     {
+        assert student != null : "Invalid student argument NullValue";
         jsonDB.begin();
         jsonDB.save(student);
         jsonDB.end(true);
@@ -46,6 +49,7 @@ public class StudentDAO {
 
     public void deleteStudent(Student student)
     {
+        assert student != null : "Invalid student argument NullValue";
         jsonDB.begin();
         jsonDB.delete(student);
         jsonDB.end(true);

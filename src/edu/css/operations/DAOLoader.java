@@ -20,6 +20,7 @@ public class DAOLoader {
 //        String dbPath = new File(projectPath, "db/student").getAbsolutePath();
 
         jsonDB = JsonDBImpl.fromFile("db/student");
+        assert jsonDB != null : "JsonDB not loaded";
     }
 
     public static StudentDAO getStudentDAO()

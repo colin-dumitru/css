@@ -28,6 +28,7 @@ public class Exam {
     }
 
     public Exam(Double mark, Integer studentId) {
+        assert mark != null && studentId != null : "Invalid constructor arguments for Exam";
         this.mark = mark;
         this.studentId = studentId;
     }
@@ -41,6 +42,7 @@ public class Exam {
     }
 
     public void setMark(Double mark) {
+        assert mark != null : "Mark shouldn't be null for Exam";
         this.mark = mark;
     }
 
@@ -49,6 +51,7 @@ public class Exam {
     }
 
     public void setStudentId(Integer studentId) {
+        assert studentId != null : "StudentId shouldn't be null for Exam";
         this.studentId = studentId;
     }
 }

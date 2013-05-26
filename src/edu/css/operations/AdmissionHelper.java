@@ -13,6 +13,9 @@ import edu.css.model.Student;
 public class AdmissionHelper {
     public static Double getPassingMark(Student student, Exam exam)
     {
+        assert student != null : "Student shouldn't be null";
+        assert exam != null : "Exam shouldn't be null";
+
         return (student.getAverage() + exam.getMark()) / 2;
     }
 

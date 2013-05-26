@@ -25,6 +25,7 @@ public class Student {
     }
 
     public Student(String name, Double average) {
+        assert name != null && name.length() != 0 && average != null : "Invalid Student constructor aguments";
         this.name = name;
         this.average = average;
     }
@@ -42,10 +43,12 @@ public class Student {
     }
 
     public void setName(String name) {
+        assert name != null && name.length() > 0 : "Invalid student name";
         this.name = name;
     }
 
     public void setAverage(Double average) {
+        assert average != null : "Average should not be null for student";
         this.average = average;
     }
 

@@ -17,6 +17,7 @@ public class ExamDAO {
     private JsonDB jsonDB;
 
     public ExamDAO(JsonDB jsonDB) {
+        assert jsonDB != null : "JsonDB argument is null";
         this.jsonDB = jsonDB;
     }
 
@@ -29,6 +30,8 @@ public class ExamDAO {
 
     public void updateExam(Exam exam)
     {
+        assert exam != null : "Invalid exam argument NullValue";
+
         jsonDB.begin();
         jsonDB.save(exam);
         jsonDB.end(true);
@@ -36,12 +39,16 @@ public class ExamDAO {
 
     public void deleteExam(Exam exam)
     {
+        assert exam != null : "Invalid exam argument NullValue";
+
         jsonDB.begin();
         jsonDB.delete(exam);
         jsonDB.end(true);
     }
 
-    public Exam getExamForStudent(Student student)            {
+    public Exam getExamForStudent(Student student)
+    {
+        assert student != null : "Student is null";
         jsonDB.begin();
         List<Exam> examList = jsonDB.getAll(Exam.class);
         jsonDB.end(false);

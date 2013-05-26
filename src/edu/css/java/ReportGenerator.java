@@ -31,6 +31,9 @@ public class ReportGenerator {
     private ExamDAO examDAO;
 
     public ReportGenerator(List<Student> studentList, ExamDAO examDAO, String outputFileName) {
+        assert studentList != null && !studentList.isEmpty() : "studentList should not be null and contain at least one student";
+        assert examDAO != null : "examDAO is null";
+        assert outputFileName != null && outputFileName.length() > 0 : "invalid outputFileName";
         this.studentList = studentList;
         this.examDAO = examDAO;
         this.outputFileName = getOutputFileName(outputFileName);
@@ -91,6 +94,7 @@ public class ReportGenerator {
         PdfPCell c6 = new PdfPCell(new Phrase("Passed"));
         table.addCell(c6);
 
+        assert table.size() == 6 : "table.size() = " + table.size() + " <> 6";
         return table;
     }
 
@@ -113,6 +117,8 @@ public class ReportGenerator {
             table.addCell(getCellValue(AdmissionHelper.getPassingMark(student, exam)));
             table.addCell(getCellValue(AdmissionHelper.passed(student, exam)));
         }
+
+        assert table.getRows().size() == studentList.size() : "table nr of rows: " + table.getRows().size() + " <> " + studentList.size();
     }
 
     private String getCellValue(Object value){

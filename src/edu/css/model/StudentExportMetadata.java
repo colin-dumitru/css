@@ -17,6 +17,9 @@ public class StudentExportMetadata
     public static String[] columnNames = {"Id","Name","BacAverage","ExamMark","Average","Passed"};
 
     public static String[] getDataVector(Student student, Exam exam){
+        assert student != null : "Null student";
+        assert exam != null : "Null exam";
+
         String[] values = new String[6];
         values[0] = student.getId().toString();
         values[1] = student.getName();
