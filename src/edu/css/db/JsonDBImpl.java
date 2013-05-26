@@ -176,6 +176,8 @@ public class JsonDBImpl implements JsonDB {
 
     @Override
     public <T> List<T> getAll(Class<T> clazz) {
+        assert clazz != null : "entity class must not be null";
+
         checkIfOpened();
         checkIfMetadata(clazz);
         return getAllChecked(clazz);
@@ -339,6 +341,9 @@ public class JsonDBImpl implements JsonDB {
 
     @Override
     public <T> T find(Integer id, Class<T> clazz) {
+        assert id != null : "entity id cannot be null";
+        assert clazz != null : "entity class cannot be null";
+
         List<T> loadedEntities = getAll(clazz);
         for (T loadedEntity : loadedEntities) {
             if (matches(loadedEntity, id, clazz)) {
@@ -376,6 +381,8 @@ public class JsonDBImpl implements JsonDB {
 
     @Override
     public <T> void save(T entity) {
+        assert entity != null : "cannot save a null entity";
+
         checkIfOpened();
         checkIfMetadata(entity.getClass());
 
@@ -499,6 +506,8 @@ public class JsonDBImpl implements JsonDB {
     }
 
     public static JsonDB fromFile(String file) {
+        assert file != null : "database path cannot be null";
+
         file = convertPath(file);
         int beginIndex = file.lastIndexOf(separator);
         String dbName = file.substring(beginIndex == -1 ? 0 : beginIndex);
@@ -595,7 +604,7 @@ class ColumnParserBuilder {
     public static final ColumnParser INT_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
-            assert obj instanceof Integer : "object value must be of type Integer";
+            assert obj == null || obj instanceof Integer : "object value must be of type Integer";
 
             return new IntValue((Integer) obj);
         }
@@ -618,7 +627,7 @@ class ColumnParserBuilder {
     public static final ColumnParser STRING_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
-            assert obj instanceof String : "object value must be of type String";
+            assert obj == null || obj instanceof String : "object value must be of type String";
             return new StringValue((String) obj);
         }
 
@@ -641,7 +650,7 @@ class ColumnParserBuilder {
     public static final ColumnParser BOOLEAN_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
-            assert obj instanceof Boolean : "object value must be of type Boolean";
+            assert obj == null || obj instanceof Boolean : "object value must be of type Boolean";
             return new BooleanValue((Boolean) obj);
         }
 
@@ -666,7 +675,7 @@ class ColumnParserBuilder {
             if (obj instanceof Integer) {
                 return new DoubleValue(((Integer) obj).doubleValue());
             } else {
-                assert obj instanceof Double : "object value must be of type Double or Integer";
+                assert obj == null || obj instanceof Double : "object value must be of type Double or Integer";
                 return new DoubleValue((Double) obj);
             }
         }
