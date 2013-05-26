@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static edu.css.json.JsonParser.ObjectValue;
 import static java.util.Arrays.asList;
 
 /**
@@ -227,6 +228,8 @@ class ChainBuilder {
     }
 
     public BuildResult build(String input) {
+        assert input != null : "Input cannot be null";
+
         for (Builder builder : builderChain) {
             if (builder.matches(input)) {
                 return builder.build(input, this);
@@ -251,27 +254,26 @@ class ObjectBuilder implements Builder {
 
     @Override
     public BuildResult build(String input, ChainBuilder chainBuilder) {
-        input = input.substring(1).trim();
-        JsonParser.ObjectValue value = new JsonParser.ObjectValue();
+        assert matches(input) : "Cannot build value from invalid input";
 
-        while (input.length() > 0) {
-            if (input.charAt(0) == '}') {
+        input = input.substring(1).trim();
+        ObjectValue value = new ObjectValue();
+
+        while (input.length() > 0 && input.charAt(0) != '}') {
+            if (input.charAt(0) == ',') {
                 input = input.substring(1).trim();
-                break;
-            } else if (input.charAt(0) == ',') {
-                input = input.substring(1).trim();
-                continue;
             } else {
                 input = parseProperty(input, value, chainBuilder);
             }
         }
 
-        return new BuildResult(input, value);
+        return new BuildResult(input.substring(1).trim(), value);
     }
 
-    private String parseProperty(String input, JsonParser.ObjectValue value, ChainBuilder chainBuilder) {
+    private String parseProperty(String input, ObjectValue value, ChainBuilder chainBuilder) {
         String propertyName = parseProperty(input);
         input = input.substring(propertyName.length() + 2).trim();
+
         if (input.charAt(0) != ':') {
             throw new JsonParseException("Invalid property format");
         }
@@ -300,22 +302,20 @@ class ArrayBuilder implements Builder {
 
     @Override
     public BuildResult build(String input, ChainBuilder chainBuilder) {
+        assert matches(input) : "Cannot build value from invalid input";
+
         input = input.substring(1).trim();
         JsonParser.ArrayValue value = new JsonParser.ArrayValue();
 
-        while (input.length() > 0) {
-            if (input.charAt(0) == ']') {
+        while (input.length() > 0 && input.charAt(0) != ']') {
+            if (input.charAt(0) == ',') {
                 input = input.substring(1).trim();
-                break;
-            } else if (input.charAt(0) == ',') {
-                input = input.substring(1).trim();
-                continue;
             } else {
                 input = parseObject(input, value, chainBuilder);
             }
         }
 
-        return new BuildResult(input, value);
+        return new BuildResult(input.substring(1).trim(), value);
     }
 
     private String parseObject(String input, JsonParser.ArrayValue value, ChainBuilder chainBuilder) {
@@ -338,9 +338,9 @@ class IntBuilder implements Builder {
     public BuildResult build(String input, ChainBuilder chainBuilder) {
         Pattern pattern = Pattern.compile("^(-?\\d+\\b)");
         Matcher matcher = pattern.matcher(input);
-        if (!matcher.find()) {
-            throw new JsonParseException("Invalid object format");
-        }
+
+        assert matcher.find() : "Cannot build value from invalid input";
+
         String encodedNumber = matcher.group(1);
         return new BuildResult(input.substring(encodedNumber.length()).trim(),
                 new JsonParser.IntValue(Integer.parseInt(encodedNumber)));
@@ -360,9 +360,9 @@ class StringBuilder implements Builder {
     public BuildResult build(String input, ChainBuilder chainBuilder) {
         Pattern pattern = Pattern.compile("^(\"[^\"]*\")");
         Matcher matcher = pattern.matcher(input);
-        if (!matcher.find()) {
-            throw new JsonParseException("Invalid object format");
-        }
+
+        assert matcher.find() : "Cannot build value from invalid input";
+
         String encodedString = matcher.group(1);
         return new BuildResult(input.substring(encodedString.length()).trim(),
                 new JsonParser.StringValue(encodedString.substring(1, encodedString.length() - 1)));
@@ -382,9 +382,9 @@ class BooleanBuilder implements Builder {
     public BuildResult build(String input, ChainBuilder chainBuilder) {
         Pattern pattern = Pattern.compile("^((true)|(false))");
         Matcher matcher = pattern.matcher(input);
-        if (!matcher.find()) {
-            throw new JsonParseException("Invalid object format");
-        }
+
+        assert matcher.find() : "Cannot build value from invalid input";
+
         String encodedBoolean = matcher.group(1);
         return new BuildResult(input.substring(encodedBoolean.length()).trim(),
                 new JsonParser.BooleanValue(Boolean.valueOf(encodedBoolean)));
@@ -404,9 +404,9 @@ class DoubleBuilder implements Builder {
     public BuildResult build(String input, ChainBuilder chainBuilder) {
         Pattern pattern = Pattern.compile("^(-?\\d+\\.\\d+)");
         Matcher matcher = pattern.matcher(input);
-        if (!matcher.find()) {
-            throw new JsonParseException("Invalid object format");
-        }
+
+        assert matcher.find() : "Cannot build value from invalid input";
+
         String encodedBoolean = matcher.group(1);
         return new BuildResult(input.substring(encodedBoolean.length()).trim(),
                 new JsonParser.DoubleValue(Double.valueOf(encodedBoolean)));
@@ -426,9 +426,9 @@ class NullBuilder implements Builder {
     public BuildResult build(String input, ChainBuilder chainBuilder) {
         Pattern pattern = Pattern.compile("^(null)");
         Matcher matcher = pattern.matcher(input);
-        if (!matcher.find()) {
-            throw new JsonParseException("Invalid object format");
-        }
+
+        assert matcher.find() : "Cannot build value from invalid input";
+
         String encodedBoolean = matcher.group(1);
         return new BuildResult(input.substring(encodedBoolean.length()).trim(), new JsonParser.NullValue());
     }

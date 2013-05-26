@@ -4,7 +4,6 @@ package edu.css.db;
 import com.google.common.base.Joiner;
 import edu.css.json.JsonParser;
 
-import java.beans.Introspector;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -15,7 +14,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static edu.css.db.ColumnParserBuilder.fromType;
 import static edu.css.json.JsonParser.*;
+import static java.beans.Introspector.decapitalize;
+import static java.io.File.separator;
 
 /**
  * Catalin Dumitru
@@ -69,6 +71,8 @@ public class JsonDBImpl implements JsonDB {
     private void loadMetadata(ObjectValue jsonObject) {
         ArrayValue entitiesArray = jsonObject.property("entities");
 
+        assert entitiesArray != null : "malformed database file";
+
         for (JsonValue jsonValue : entitiesArray.properties()) {
             EntityMeta entityMeta = createEntityMeta((ObjectValue) jsonValue);
             entities.put(entityMeta.getName(), entityMeta);
@@ -78,6 +82,10 @@ public class JsonDBImpl implements JsonDB {
     private EntityMeta createEntityMeta(ObjectValue entityObject) {
         String name = entityObject.<StringValue>property("name").value();
         ArrayValue columns = entityObject.property("columns");
+
+        assert name != null : "missing name property";
+        assert columns != null : "missing columns property";
+
         Map<String, ColumnMeta> columnsMeta = createColumnsMeta(columns);
         List<String> orderedColumns = createOrderedColumns(columns);
 
@@ -106,9 +114,13 @@ public class JsonDBImpl implements JsonDB {
     private ColumnMeta createColumnMeta(ObjectValue jsonObject) {
         String name = jsonObject.<StringValue>property("name").value();
         String type = jsonObject.<StringValue>property("type").value();
+
+        assert name != null : "missing name property";
+        assert type != null : "missing type property";
+
         boolean isKey = jsonObject.has("id") && jsonObject.<BooleanValue>property("id").value();
 
-        return new ColumnMeta(name, type, isKey, ColumnParserBuilder.fromType(type));
+        return new ColumnMeta(name, type, isKey, fromType(type));
     }
 
     private void checkIfDataExists() {
@@ -129,7 +141,9 @@ public class JsonDBImpl implements JsonDB {
 
     @Override
     public void begin() {
+        assert this.closed : "begin was called on an opened database";
         this.closed = false;
+
         try {
             Scanner scanner = new Scanner(dataFile);
             scanner.useDelimiter("\\Z");
@@ -141,7 +155,9 @@ public class JsonDBImpl implements JsonDB {
 
     @Override
     public void end(boolean saveChanges) {
+        assert !this.closed : "end called before begin";
         this.closed = true;
+
         if (saveChanges) {
             saveChanges();
         }
@@ -178,7 +194,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> List<T> loadAllFromData(ObjectValue dataObject, Class<T> clazz) {
-        String entityName = Introspector.decapitalize(clazz.getSimpleName());
+        String entityName = decapitalize(clazz.getSimpleName());
         if (!dataObject.has(entityName)) {
             return Collections.emptyList();
         }
@@ -246,6 +262,7 @@ public class JsonDBImpl implements JsonDB {
     private <T> T createNewInstance(Constructor<T> constructor) {
         try {
             constructor.setAccessible(true);
+            assert constructor.isAccessible() : "making the constructor accessible has failed";
             return constructor.newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new DBParseException("Error creating entity", e);
@@ -255,7 +272,6 @@ public class JsonDBImpl implements JsonDB {
     private <T> void checkIfMetadata(Class<T> clazz) {
         checkEntityAnnotation(clazz);
         EntityMeta metadata = checkMetadataPresent(clazz);
-
         checkFieldMetadata(clazz, metadata);
     }
 
@@ -301,7 +317,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> EntityMeta checkMetadataPresent(Class<T> clazz) {
-        EntityMeta metadata = entities.get(Introspector.decapitalize(clazz.getSimpleName()));
+        EntityMeta metadata = entities.get(decapitalize(clazz.getSimpleName()));
         if (metadata == null) {
             throw new DBParseException("No metadata was found for entity");
         }
@@ -337,15 +353,21 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> Integer getIdValue(T loadedEntity, Class<T> clazz) {
-        EntityMeta entityMeta = entities.get(Introspector.decapitalize(clazz.getSimpleName()));
+        EntityMeta entityMeta = entities.get(decapitalize(clazz.getSimpleName()));
         Field keyField = getField(entityMeta.getKeyColumn().getName(), clazz);
+
         keyField.setAccessible(true);
-        return (Integer) getFieldValue(loadedEntity, keyField);
+        assert keyField.isAccessible() : "making the key field accessible has failed";
+
+        Object keyFieldValue = getFieldValue(loadedEntity, keyField);
+        assert keyFieldValue instanceof Integer : "wrong type for key field value";
+        return (Integer) keyFieldValue;
     }
 
     private <T> Object getFieldValue(T loadedEntity, Field keyField) {
         try {
             keyField.setAccessible(true);
+            assert keyField.isAccessible() : "making the key field accessible has failed";
             return keyField.get(loadedEntity);
         } catch (IllegalAccessException e) {
             throw new DBParseException("Error getting key field value", e);
@@ -364,7 +386,10 @@ public class JsonDBImpl implements JsonDB {
 
     private <T> void save(ArrayValue dataArray, T entity) {
         ObjectValue dataObject = dbObject.property("data");
-        ArrayValue entityArray = dataObject.property(Introspector.decapitalize(entity.getClass().getSimpleName()));
+
+        assert dataObject != null : "malformed data file";
+
+        ArrayValue entityArray = dataObject.property(decapitalize(entity.getClass().getSimpleName()));
         saveOrUpdateEntity(dataArray, entityArray, entity);
     }
 
@@ -394,7 +419,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> boolean arrayForEntity(ArrayValue jsonArray, T entity) {
-        String entityName = Introspector.decapitalize(entity.getClass().getSimpleName());
+        String entityName = decapitalize(entity.getClass().getSimpleName());
         Object row = loadRow(jsonArray, entities.get(entityName), getConstructor(entity.getClass()));
         Object rowIdValue = getFieldValue(row, getField(entities.get(entityName).getKeyColumn().getName(), entity.getClass()));
         Object idValue = getFieldValue(entity, getField(entities.get(entityName).getKeyColumn().getName(), entity.getClass()));
@@ -402,7 +427,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> void updateKeyField(T entity) {
-        EntityMeta meta = entities.get(Introspector.decapitalize(entity.getClass().getSimpleName()));
+        EntityMeta meta = entities.get(decapitalize(entity.getClass().getSimpleName()));
         Field keyField = getField(meta.getKeyColumn().getName(), entity.getClass());
         keyField.setAccessible(true);
         updateKeyField(keyField, entity);
@@ -410,13 +435,16 @@ public class JsonDBImpl implements JsonDB {
 
     private <T> void updateKeyField(Field keyField, T entity) {
         if (getFieldValue(entity, keyField) == null) {
-            Integer id = getNextSequence(Introspector.decapitalize(entity.getClass().getSimpleName()));
+            Integer id = getNextSequence(decapitalize(entity.getClass().getSimpleName()));
             setFieldValue(entity, id, keyField);
         }
     }
 
     private Integer getNextSequence(String entityName) {
         ObjectValue seqObject = dbObject.property("seq");
+
+        assert seqObject != null : "missing seq property from data file";
+
         return getNextSequence(seqObject, entityName);
     }
 
@@ -429,7 +457,7 @@ public class JsonDBImpl implements JsonDB {
 
     private <T> ArrayValue serialize(T entity) {
         ArrayValue dataArray = new ArrayValue();
-        EntityMeta meta = entities.get(Introspector.decapitalize(entity.getClass().getSimpleName()));
+        EntityMeta meta = entities.get(decapitalize(entity.getClass().getSimpleName()));
         for (JsonValue obj : serialize(entity, meta)) {
             dataArray.push(obj);
         }
@@ -448,6 +476,7 @@ public class JsonDBImpl implements JsonDB {
     private <T> JsonValue getEntityValue(T entity, String column, ColumnMeta columnMeta) {
         Field columnField = getField(column, entity.getClass());
         columnField.setAccessible(true);
+        assert columnField.isAccessible() : "making the column field accessible has failed";
         return columnMeta.getParser().toJson(getFieldValue(entity, columnField));
     }
 
@@ -456,33 +485,35 @@ public class JsonDBImpl implements JsonDB {
         checkIfOpened();
         if (entity != null) {
             checkIfMetadata(entity.getClass());
-
             tryToDelete(entity);
         }
     }
 
     private <T> void tryToDelete(T entity) {
         ObjectValue dataObject = dbObject.property("data");
-        ArrayValue entityArray = dataObject.property(Introspector.decapitalize(entity.getClass().getSimpleName()));
+
+        assert dataObject != null : "malformed data file";
+
+        ArrayValue entityArray = dataObject.property(decapitalize(entity.getClass().getSimpleName()));
         removeEntity(entityArray, entity);
     }
 
     public static JsonDB fromFile(String file) {
         file = convertPath(file);
-        int beginIndex = file.lastIndexOf(File.separator);
+        int beginIndex = file.lastIndexOf(separator);
         String dbName = file.substring(beginIndex == -1 ? 0 : beginIndex);
-        File metaFile = new File(file + File.separator + dbName + ".meta.json");
-        File dataFile = new File(file + File.separator + dbName + ".json");
+        File metaFile = new File(file + separator + dbName + ".meta.json");
+        File dataFile = new File(file + separator + dbName + ".json");
 
         return new JsonDBImpl(metaFile, dataFile).performAndLoadValidation();
     }
 
     private static String convertPath(String file) {
         if (file.indexOf('/') != -1) {
-            return Joiner.on(File.separator).join(file.split("/"));
+            return Joiner.on(separator).join(file.split("/"));
         }
         if (file.indexOf('\\') != -1) {
-            return Joiner.on(File.separator).join(file.split("\\\\"));
+            return Joiner.on(separator).join(file.split("\\\\"));
         }
         return file;
     }
@@ -564,6 +595,8 @@ class ColumnParserBuilder {
     public static final ColumnParser INT_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
+            assert obj instanceof Integer : "object value must be of type Integer";
+
             return new IntValue((Integer) obj);
         }
 
@@ -572,6 +605,7 @@ class ColumnParserBuilder {
             if (data instanceof NullValue) {
                 return null;
             } else {
+                assert data instanceof IntValue : "json value must me of type IntValue";
                 return ((IntValue) data).value();
             }
         }
@@ -584,6 +618,7 @@ class ColumnParserBuilder {
     public static final ColumnParser STRING_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
+            assert obj instanceof String : "object value must be of type String";
             return new StringValue((String) obj);
         }
 
@@ -592,6 +627,7 @@ class ColumnParserBuilder {
             if (data instanceof NullValue) {
                 return null;
             } else {
+                assert data instanceof StringValue : "json value must me of type StringValue";
                 return ((StringValue) data).value();
             }
         }
@@ -605,6 +641,7 @@ class ColumnParserBuilder {
     public static final ColumnParser BOOLEAN_PARSER = new ColumnParser() {
         @Override
         public JsonValue toJson(Object obj) {
+            assert obj instanceof Boolean : "object value must be of type Boolean";
             return new BooleanValue((Boolean) obj);
         }
 
@@ -613,6 +650,7 @@ class ColumnParserBuilder {
             if (data instanceof NullValue) {
                 return null;
             } else {
+                assert data instanceof BooleanValue : "json value must me of type BooleanValue";
                 return ((BooleanValue) data).value();
             }
         }
@@ -628,6 +666,7 @@ class ColumnParserBuilder {
             if (obj instanceof Integer) {
                 return new DoubleValue(((Integer) obj).doubleValue());
             } else {
+                assert obj instanceof Double : "object value must be of type Double or Integer";
                 return new DoubleValue((Double) obj);
             }
         }
@@ -639,6 +678,7 @@ class ColumnParserBuilder {
             } else if (data instanceof IntValue) {
                 return ((IntValue) data).value().doubleValue();
             } else {
+                assert data instanceof DoubleValue : "json value must me of type DoubleValue or IntValue";
                 return ((DoubleValue) data).value();
             }
         }
