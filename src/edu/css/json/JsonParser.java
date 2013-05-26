@@ -348,7 +348,8 @@ class IntBuilder implements Builder {
         Pattern pattern = Pattern.compile("^(-?\\d+\\b)");
         Matcher matcher = pattern.matcher(input);
 
-        assert matcher.find() : "Cannot build value from invalid input";
+        boolean elementFound = matcher.find();
+        assert elementFound : "Cannot build value from invalid input";
 
         String encodedNumber = matcher.group(1);
         return new BuildResult(input.substring(encodedNumber.length()).trim(),
@@ -370,7 +371,8 @@ class StringBuilder implements Builder {
         Pattern pattern = Pattern.compile("^(\"[^\"]*\")");
         Matcher matcher = pattern.matcher(input);
 
-        assert matcher.find() : "Cannot build value from invalid input";
+        boolean elementFound = matcher.find();
+        assert elementFound : "Cannot build value from invalid input";
 
         String encodedString = matcher.group(1);
         return new BuildResult(input.substring(encodedString.length()).trim(),
@@ -392,7 +394,8 @@ class BooleanBuilder implements Builder {
         Pattern pattern = Pattern.compile("^((true)|(false))");
         Matcher matcher = pattern.matcher(input);
 
-        assert matcher.find() : "Cannot build value from invalid input";
+        boolean elementFound = matcher.find();
+        assert elementFound : "Cannot build value from invalid input";
 
         String encodedBoolean = matcher.group(1);
         return new BuildResult(input.substring(encodedBoolean.length()).trim(),
@@ -414,7 +417,8 @@ class DoubleBuilder implements Builder {
         Pattern pattern = Pattern.compile("^(-?\\d+\\.\\d+)");
         Matcher matcher = pattern.matcher(input);
 
-        assert matcher.find() : "Cannot build value from invalid input";
+        boolean elementFound = matcher.find();
+        assert elementFound : "Cannot build value from invalid input";
 
         String encodedBoolean = matcher.group(1);
         return new BuildResult(input.substring(encodedBoolean.length()).trim(),
@@ -436,7 +440,8 @@ class NullBuilder implements Builder {
         Pattern pattern = Pattern.compile("^(null)");
         Matcher matcher = pattern.matcher(input);
 
-        assert matcher.find() : "Cannot build value from invalid input";
+        boolean elementFound = matcher.find();
+        assert elementFound : "Cannot build value from invalid input";
 
         String encodedBoolean = matcher.group(1);
         return new BuildResult(input.substring(encodedBoolean.length()).trim(), new JsonParser.NullValue());

@@ -94,7 +94,7 @@ public class ReportGenerator {
         PdfPCell c6 = new PdfPCell(new Phrase("Passed"));
         table.addCell(c6);
 
-        assert table.size() == 6 : "table.size() = " + table.size() + " <> 6";
+        assert table.getNumberOfColumns() == 6 : "table.size() = " + table.size() + " <> 6";
         return table;
     }
 
@@ -118,7 +118,7 @@ public class ReportGenerator {
             table.addCell(getCellValue(AdmissionHelper.passed(student, exam)));
         }
 
-        assert table.getRows().size() == studentList.size() : "table nr of rows: " + table.getRows().size() + " <> " + studentList.size();
+        assert table.getRows().size() == studentList.size() + 1 : "table nr of rows: " + table.getRows().size() + " <> " + studentList.size() + 1; //+1 for header
     }
 
     private String getCellValue(Object value){

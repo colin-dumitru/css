@@ -304,8 +304,10 @@ public class JsonDBImpl implements JsonDB {
         int matchedFields = 0;
 
         for (Field field : clazz.getDeclaredFields()) {
-            checkFieldMetadata(metadata, field);
-            matchedFields++;
+            if(!field.isSynthetic()) { //prevents fields added at runtime by assertion mechanism
+                checkFieldMetadata(metadata, field);
+                matchedFields++;
+            }
         }
 
         if (metadata.getColumns().size() != matchedFields) {

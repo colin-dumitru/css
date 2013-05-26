@@ -150,7 +150,6 @@ public class MainWindow extends JDialog {
         } catch (Exception e) {
             System.out.println(e);
         }
-        //assert false;
         MainWindow dialog = new MainWindow();
         dialog.pack();
         dialog.setVisible(true);
