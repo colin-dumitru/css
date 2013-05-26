@@ -34,6 +34,7 @@ public class JsonParser {
     }
 
     public <T extends JsonValue> T parse(String input) {
+        assert input != null : "input content cannot be null";
         return parseImpl(input);
     }
 
@@ -42,7 +43,7 @@ public class JsonParser {
     }
 
     private JsonValue chainParse(String input) {
-        if (input.isEmpty()) {
+        if (input.trim().isEmpty()) {
             throw new JsonParseException("Unexpected end of file");
         }
         return chainBuilder.build(input.trim()).value;
@@ -149,10 +150,12 @@ public class JsonParser {
         }
 
         public ObjectValue(Map<String, JsonValue> properties) {
+            assert properties != null : "properties map cannot be null";
             this.properties.putAll(properties);
         }
 
         public ObjectValue(Map.Entry<String, JsonValue>... properties) {
+            assert properties != null : "properties map cannot be null";
             for (Map.Entry<String, JsonValue> property : properties) {
                 this.properties.put(property.getKey(), property.getValue());
             }
@@ -163,14 +166,17 @@ public class JsonParser {
         }
 
         public <T extends JsonValue> T property(String key) {
+            assert key != null : "property name cannot be null";
             return (T) this.properties.get(key);
         }
 
         public boolean has(String key) {
+            assert key != null : "property name cannot be null";
             return properties.containsKey(key);
         }
 
         public void set(String key, JsonValue value) {
+            assert key != null : "property name cannot be null";
             properties.put(key, value);
         }
 
@@ -189,10 +195,12 @@ public class JsonParser {
         private List<JsonValue> properties = newArrayList();
 
         public ArrayValue(List<JsonValue> properties) {
+            assert properties != null : "properties list cannot be null";
             this.properties.addAll(properties);
         }
 
         public ArrayValue(JsonValue... properties) {
+            assert properties != null : "properties list cannot be null";
             this.properties.addAll(asList(properties));
         }
 
@@ -224,6 +232,7 @@ class ChainBuilder {
     private List<Builder> builderChain = newArrayList();
 
     ChainBuilder(List<Builder> builderChain) {
+        assert builderChain != null : "builder list cannot be null";
         this.builderChain = builderChain;
     }
 

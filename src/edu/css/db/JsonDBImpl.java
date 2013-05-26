@@ -69,6 +69,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private void loadMetadata(ObjectValue jsonObject) {
+        assert jsonObject != null : "metadata object cannot be null";
         ArrayValue entitiesArray = jsonObject.property("entities");
 
         assert entitiesArray != null : "malformed database file";
@@ -164,8 +165,13 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private void saveChanges() {
+        assert dbObject != null : "metadata must be loaded prior of saving";
         String stringData = dbObject.toString();
+
         try {
+            assert dataFile != null : "data file must exist to save database";
+            assert dataFile.exists() : "data file must exist to save database";
+
             FileWriter fileWriter = new FileWriter(dataFile);
             fileWriter.write(stringData);
             fileWriter.close();
@@ -184,6 +190,7 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> List<T> getAllChecked(Class<T> clazz) {
+        assert dbObject != null : "metadata must be loaded prior of saving";
         return loadAll(dbObject, clazz);
     }
 
@@ -192,6 +199,7 @@ public class JsonDBImpl implements JsonDB {
             return Collections.emptyList();
         }
         ObjectValue dataObject = jsonObject.property("data");
+        assert dataObject != null : "data object is null even though it exists";
         return loadAllFromData(dataObject, clazz);
     }
 
@@ -201,12 +209,15 @@ public class JsonDBImpl implements JsonDB {
             return Collections.emptyList();
         }
         ArrayValue entityArray = dataObject.property(entityName);
+        assert entityArray != null : "data array for entity does not exist";
         Constructor<T> constructor = getConstructor(clazz);
+        assert constructor != null : "entity has no default constructor";
         return loadAllFromArray(entityArray, entities.get(entityName), constructor);
     }
 
     private <T> Constructor<T> getConstructor(Class<T> clazz) {
         try {
+            assert clazz != null : "cannot get constructor of a null class";
             return clazz.getConstructor();
         } catch (NoSuchMethodException e) {
             throw new DBParseException("Error getting class constructor", e);
@@ -218,6 +229,7 @@ public class JsonDBImpl implements JsonDB {
 
         for (JsonValue jsonValue : entityArray.properties()) {
             T row = loadRow((ArrayValue) jsonValue, entityMeta, constructor);
+            assert row != null : "unable to create entity from row";
             rows.add(row);
         }
         return rows;
@@ -225,6 +237,7 @@ public class JsonDBImpl implements JsonDB {
 
     private <T> T loadRow(ArrayValue array, EntityMeta entityMeta, Constructor<T> constructor) {
         T row = createNewInstance(constructor);
+        assert row != null : "new instance of entity cannot be null";
 
         for (int i = 0; i < array.properties().size(); i++) {
             String columnName = entityMeta.getOrderedColumns().get(i);
@@ -237,7 +250,9 @@ public class JsonDBImpl implements JsonDB {
 
     private <T> void setColumnData(T row, Object columnData, String columnName) {
         Field dataField = getField(columnName, row.getClass());
+        assert dataField != null : "field for column was not found";
         dataField.setAccessible(true);
+        assert dataField.isAccessible() : "making the data field accessible has failed";
         setFieldValue(row, columnData, dataField);
     }
 
@@ -251,6 +266,7 @@ public class JsonDBImpl implements JsonDB {
 
     private <T> Field getField(String columnName, Class<T> clazz) {
         try {
+            assert clazz != null : "cannot get field from a null class";
             return clazz.getDeclaredField(columnName);
         } catch (NoSuchFieldException e) {
             throw new DBParseException("Error getting entity field", e);
@@ -258,11 +274,14 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private Object getColumnData(String columnName, JsonValue obj, EntityMeta entityMeta) {
+        assert entityMeta != null : "entity metadata cannot be null";
+        assert entityMeta.getColumns().containsKey(columnName) : "entity metadata does not contain column";
         return entityMeta.getColumns().get(columnName).getParser().fromJson(obj);
     }
 
     private <T> T createNewInstance(Constructor<T> constructor) {
         try {
+            assert constructor != null : "cannot create a new instance from a null constructor";
             constructor.setAccessible(true);
             assert constructor.isAccessible() : "making the constructor accessible has failed";
             return constructor.newInstance();
@@ -274,10 +293,14 @@ public class JsonDBImpl implements JsonDB {
     private <T> void checkIfMetadata(Class<T> clazz) {
         checkEntityAnnotation(clazz);
         EntityMeta metadata = checkMetadataPresent(clazz);
+        assert metadata != null : "entity metadata was not found";
         checkFieldMetadata(clazz, metadata);
     }
 
     private <T> void checkFieldMetadata(Class<T> clazz, EntityMeta metadata) {
+        assert metadata != null : "entity metadata cannot be null";
+        assert clazz != null : "entity class cannot be null";
+
         int matchedFields = 0;
 
         for (Field field : clazz.getDeclaredFields()) {
@@ -463,8 +486,12 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> ArrayValue serialize(T entity) {
+        assert entity != null : "cannot serialize a null entity";
+
         ArrayValue dataArray = new ArrayValue();
         EntityMeta meta = entities.get(decapitalize(entity.getClass().getSimpleName()));
+        assert meta != null : "metadata for entity is missing";
+
         for (JsonValue obj : serialize(entity, meta)) {
             dataArray.push(obj);
         }
@@ -481,6 +508,8 @@ public class JsonDBImpl implements JsonDB {
     }
 
     private <T> JsonValue getEntityValue(T entity, String column, ColumnMeta columnMeta) {
+        assert entity != null : "cannot get field value from a null entity";
+
         Field columnField = getField(column, entity.getClass());
         columnField.setAccessible(true);
         assert columnField.isAccessible() : "making the column field accessible has failed";
