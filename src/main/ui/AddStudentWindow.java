@@ -106,7 +106,7 @@ public class AddStudentWindow extends JDialog {
 
         assert examDAO != null : ASSERTION_FAIL + "OnOK -> Null examDAO";
         examDAO.addExam(exam);
-        assert examDAO.getExamForStudent(student).equals(exam) : ASSERTION_FAIL + "OnOK -> invalid AddExam operation!!!";
+        assert examDAO.getExamForStudent(student) != null : ASSERTION_FAIL + "OnOK -> invalid AddExam operation!!!";
         dispose();
     }
 
